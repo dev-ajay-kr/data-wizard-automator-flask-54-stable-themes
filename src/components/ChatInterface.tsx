@@ -17,9 +17,11 @@ export const ChatInterface: React.FC = () => {
     const savedApiKey = localStorage.getItem('gemini_api_key');
     if (savedApiKey) {
       setApiKey(savedApiKey);
+      console.log('API key loaded from localStorage:', savedApiKey.substring(0, 10) + '...');
     } else {
       // Set the provided API key and save it to localStorage
       localStorage.setItem('gemini_api_key', 'AIzaSyD7xOyEoBciNbIA4Sdnsw-NnNNqJ7ylX1A');
+      console.log('API key set and saved to localStorage');
     }
   }, []);
 
@@ -28,6 +30,7 @@ export const ChatInterface: React.FC = () => {
     const newApiKey = e.target.value;
     setApiKey(newApiKey);
     localStorage.setItem('gemini_api_key', newApiKey);
+    console.log('API key updated and saved to localStorage');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,14 +46,17 @@ export const ChatInterface: React.FC = () => {
       return;
     }
 
+    console.log('Using API key:', apiKey.substring(0, 10) + '...');
+    console.log('Sending prompt:', prompt);
+
     const userMessage = { role: 'user' as const, content: prompt };
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
     setPrompt('');
 
     try {
-      // Make actual API call to Gemini
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+      // Use the correct Gemini API endpoint with the updated model name
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,11 +70,17 @@ export const ChatInterface: React.FC = () => {
         }),
       });
 
+      console.log('API response status:', response.status);
+
       if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
+        const errorData = await response.json();
+        console.error('API Error Details:', errorData);
+        throw new Error(`API Error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
       }
 
       const data = await response.json();
+      console.log('API response data:', data);
+      
       const assistantMessage = {
         role: 'assistant' as const,
         content: data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not generate a response.'
@@ -111,6 +123,9 @@ export const ChatInterface: React.FC = () => {
         />
         <p className="text-xs text-amber-700 mt-2">
           Your API key is stored locally in your browser. For production use, consider using Supabase for secure storage.
+        </p>
+        <p className="text-xs text-green-700 mt-1">
+          Status: {apiKey ? `API key loaded (${apiKey.substring(0, 10)}...)` : 'No API key set'}
         </p>
       </Card>
 
