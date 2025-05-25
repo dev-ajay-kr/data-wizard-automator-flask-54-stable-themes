@@ -1,42 +1,86 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { MessageCircle, Send } from 'lucide-react';
+import { MessageCircle, Send, Key } from 'lucide-react';
 
 export const ChatInterface: React.FC = () => {
   const [prompt, setPrompt] = useState('');
+  const [apiKey, setApiKey] = useState('');
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load API key from localStorage on component mount
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem('gemini_api_key');
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+    }
+  }, []);
+
+  // Save API key to localStorage when it changes
+  const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newApiKey = e.target.value;
+    setApiKey(newApiKey);
+    localStorage.setItem('gemini_api_key', newApiKey);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.trim()) return;
+    
+    if (!apiKey.trim()) {
+      const errorMessage = {
+        role: 'assistant' as const,
+        content: 'Please enter your Gemini API key first to use the chat functionality.'
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      return;
+    }
 
     const userMessage = { role: 'user' as const, content: prompt };
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
     setPrompt('');
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      // Make actual API call to Gemini
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }]
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+
+      const data = await response.json();
       const assistantMessage = {
         role: 'assistant' as const,
-        content: `I understand you want to analyze data. Here's what I can help you with:
-
-**Data Analysis Capabilities:**
-- CSV file structure analysis
-- Data quality assessment
-- Column profiling and statistics
-- Dashboard recommendations
-- ETL pipeline suggestions
-
-Please upload your CSV files using the "CSV Upload" tab, and I'll provide detailed insights about your data structure and recommend the best visualization approaches.`
+        content: data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not generate a response.'
       };
       setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Error calling Gemini API:', error);
+      const errorMessage = {
+        role: 'assistant' as const,
+        content: 'Sorry, there was an error connecting to the Gemini API. Please check your API key and try again.'
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -48,6 +92,24 @@ Please upload your CSV files using the "CSV Upload" tab, and I'll provide detail
         </h2>
         <p className="text-gray-600">Get AI-powered insights about your data and ETL processes</p>
       </div>
+
+      {/* API Key Input */}
+      <Card className="p-4 mb-6 bg-amber-50 border-amber-200">
+        <div className="flex items-center gap-2 mb-2">
+          <Key className="w-4 h-4 text-amber-600" />
+          <h3 className="font-semibold text-amber-800">Gemini API Key</h3>
+        </div>
+        <Input
+          type="password"
+          value={apiKey}
+          onChange={handleApiKeyChange}
+          placeholder="Enter your Gemini API key..."
+          className="bg-white"
+        />
+        <p className="text-xs text-amber-700 mt-2">
+          Your API key is stored locally in your browser. For production use, consider using Supabase for secure storage.
+        </p>
+      </Card>
 
       <div className="space-y-4 mb-6">
         {messages.map((message, index) => (
