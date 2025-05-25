@@ -8,7 +8,7 @@ import { MessageCircle, Send, Key } from 'lucide-react';
 
 export const ChatInterface: React.FC = () => {
   const [prompt, setPrompt] = useState('');
-  const [apiKey, setApiKey] = useState('');
+  const [apiKey, setApiKey] = useState('AIzaSyD7xOyEoBciNbIA4Sdnsw-NnNNqJ7ylX1A');
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -17,6 +17,9 @@ export const ChatInterface: React.FC = () => {
     const savedApiKey = localStorage.getItem('gemini_api_key');
     if (savedApiKey) {
       setApiKey(savedApiKey);
+    } else {
+      // Set the provided API key and save it to localStorage
+      localStorage.setItem('gemini_api_key', 'AIzaSyD7xOyEoBciNbIA4Sdnsw-NnNNqJ7ylX1A');
     }
   }, []);
 
