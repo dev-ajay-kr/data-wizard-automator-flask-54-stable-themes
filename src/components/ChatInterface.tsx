@@ -319,7 +319,7 @@ export const ChatInterface: React.FC = () => {
             </Button>
           </div>
         </form>
-      </div>
+      </Card>
     </div>
   );
 };
