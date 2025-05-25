@@ -2,12 +2,32 @@
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Upload, FileText, CheckCircle, AlertCircle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Upload, FileText, CheckCircle, AlertCircle, MessageCircle, Send, Bot, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+interface UploadedFile {
+  name: string;
+  size: number;
+  preview: string[][];
+}
+
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  id: string;
+}
+
 export const CSVUpload: React.FC = () => {
-  const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string, size: number, preview: string[][] }>>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [showChat, setShowChat] = useState(false);
   const { toast } = useToast();
 
   const handleFileUpload = useCallback((files: FileList) => {
@@ -16,8 +36,8 @@ export const CSVUpload: React.FC = () => {
         const reader = new FileReader();
         reader.onload = (e) => {
           const text = e.target?.result as string;
-          const lines = text.split('\n').slice(0, 6); // Preview first 6 rows
-          const preview = lines.map(line => line.split(',').slice(0, 5)); // Preview first 5 columns
+          const lines = text.split('\n').slice(0, 6);
+          const preview = lines.map(line => line.split(',').slice(0, 5));
           
           setUploadedFiles(prev => [...prev, {
             name: file.name,
@@ -29,6 +49,16 @@ export const CSVUpload: React.FC = () => {
             title: "File uploaded successfully",
             description: `${file.name} has been processed and analyzed.`,
           });
+
+          // Add initial chat message about the uploaded file
+          const welcomeMessage: ChatMessage = {
+            role: 'assistant',
+            content: `File "${file.name}" has been uploaded successfully! I can help you analyze this data. You can ask me questions like:\n\n- "What are the main columns in this dataset?"\n- "Show me summary statistics"\n- "What patterns do you see in the data?"\n- "Suggest visualizations for this data"`,
+            timestamp: new Date(),
+            id: `welcome-${Date.now()}`
+          };
+          setChatMessages(prev => [...prev, welcomeMessage]);
+          setShowChat(true);
         };
         reader.readAsText(file);
       } else {
@@ -53,12 +83,52 @@ export const CSVUpload: React.FC = () => {
     }
   }, [handleFileUpload]);
 
+  const handleChatSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: chatInput,
+      timestamp: new Date(),
+      id: `user-${Date.now()}`
+    };
+
+    setChatMessages(prev => [...prev, userMessage]);
+    setIsChatLoading(true);
+    setChatInput('');
+
+    // Simulate AI response about the CSV data
+    setTimeout(() => {
+      const responses = [
+        "Based on your uploaded CSV file, I can see several interesting patterns. The data appears to have numeric and categorical columns that would be great for analysis.",
+        "I notice your dataset has multiple data types. Would you like me to suggest some specific visualizations or statistical analyses?",
+        "Your CSV file structure looks well-organized. I can help you identify trends, outliers, or create dashboard recommendations.",
+        "The uploaded data contains various columns that could be used for correlation analysis, time series analysis, or categorical breakdowns."
+      ];
+
+      const assistantMessage: ChatMessage = {
+        role: 'assistant',
+        content: responses[Math.floor(Math.random() * responses.length)],
+        timestamp: new Date(),
+        id: `assistant-${Date.now()}`
+      };
+
+      setChatMessages(prev => [...prev, assistantMessage]);
+      setIsChatLoading(false);
+    }, 1500);
+  };
+
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -71,83 +141,198 @@ export const CSVUpload: React.FC = () => {
         <p className="text-gray-600">Upload your CSV files for analysis and processing</p>
       </div>
 
-      <Card 
-        className={`p-8 border-2 border-dashed transition-colors duration-200 ${
-          isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-        }`}
-        onDrop={handleDrop}
-        onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
-        onDragLeave={() => setIsDragOver(false)}
-      >
-        <div className="text-center">
-          <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Upload CSV Files</h3>
-          <p className="text-gray-600 mb-4">Drag and drop your CSV files here, or click to select</p>
-          <input
-            type="file"
-            multiple
-            accept=".csv"
-            onChange={handleFileInput}
-            className="hidden"
-            id="file-upload"
-          />
-          <Button asChild className="bg-blue-600 hover:bg-blue-700">
-            <label htmlFor="file-upload" className="cursor-pointer">
-              Select Files
-            </label>
-          </Button>
-        </div>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Upload Section */}
+        <div className="space-y-6">
+          <Card 
+            className={`p-8 border-2 border-dashed transition-colors duration-200 ${
+              isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+            }`}
+            onDrop={handleDrop}
+            onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+            onDragLeave={() => setIsDragOver(false)}
+          >
+            <div className="text-center">
+              <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Upload CSV Files</h3>
+              <p className="text-gray-600 mb-4">Drag and drop your CSV files here, or click to select</p>
+              <input
+                type="file"
+                multiple
+                accept=".csv"
+                onChange={handleFileInput}
+                className="hidden"
+                id="file-upload"
+              />
+              <Button asChild className="bg-blue-600 hover:bg-blue-700">
+                <label htmlFor="file-upload" className="cursor-pointer">
+                  Select Files
+                </label>
+              </Button>
+            </div>
+          </Card>
 
-      {uploadedFiles.length > 0 && (
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-green-500" />
-            Uploaded Files ({uploadedFiles.length})
-          </h3>
-          <div className="space-y-4">
-            {uploadedFiles.map((file, index) => (
-              <Card key={index} className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <FileText className="w-8 h-8 text-blue-500" />
-                    <div>
-                      <h4 className="font-semibold text-gray-900">{file.name}</h4>
-                      <p className="text-sm text-gray-600">{formatFileSize(file.size)}</p>
+          {/* Uploaded Files */}
+          {uploadedFiles.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                Uploaded Files ({uploadedFiles.length})
+              </h3>
+              <div className="space-y-4">
+                {uploadedFiles.map((file, index) => (
+                  <Card key={index} className="p-4">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <FileText className="w-6 h-6 text-blue-500" />
+                        <div>
+                          <h4 className="font-semibold text-gray-900">{file.name}</h4>
+                          <p className="text-sm text-gray-600">{formatFileSize(file.size)}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-green-600">
+                        <CheckCircle className="w-4 h-4" />
+                        <span className="text-sm font-medium">Processed</span>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <h5 className="font-medium text-gray-900 mb-2">Data Preview</h5>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full border border-gray-200 text-sm">
+                          <tbody>
+                            {file.preview.slice(0, 4).map((row, rowIndex) => (
+                              <tr key={rowIndex} className={rowIndex === 0 ? 'bg-gray-100 font-medium' : 'bg-white'}>
+                                {row.slice(0, 4).map((cell, cellIndex) => (
+                                  <td key={cellIndex} className="px-2 py-1 border-r border-gray-200 text-xs">
+                                    {cell.trim() || '—'}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Chat Section */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-blue-500" />
+              Chat with your data
+            </h3>
+            {uploadedFiles.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowChat(!showChat)}
+              >
+                {showChat ? 'Hide Chat' : 'Show Chat'}
+              </Button>
+            )}
+          </div>
+
+          {uploadedFiles.length === 0 ? (
+            <Card className="p-8">
+              <div className="text-center text-gray-500">
+                <MessageCircle className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p>Upload a CSV file to start chatting about your data</p>
+              </div>
+            </Card>
+          ) : showChat ? (
+            <Card className="h-96 flex flex-col">
+              <ScrollArea className="flex-1 p-4">
+                {chatMessages.map((message) => (
+                  <div key={message.id} className={`flex gap-3 mb-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    {message.role === 'assistant' && (
+                      <Avatar className="w-6 h-6 mt-1">
+                        <AvatarFallback className="bg-blue-500 text-white">
+                          <Bot className="w-3 h-3" />
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                    
+                    <div className={`max-w-[80%] ${message.role === 'user' ? 'order-1' : 'order-2'}`}>
+                      <div className={`rounded-lg px-3 py-2 text-sm ${
+                        message.role === 'user' 
+                          ? 'bg-blue-500 text-white' 
+                          : 'bg-gray-100 text-gray-900'
+                      }`}>
+                        {message.content.split('\n').map((line, i) => (
+                          line ? <p key={i} className="mb-1 last:mb-0">{line}</p> : <br key={i} />
+                        ))}
+                      </div>
+                      <div className={`text-xs text-gray-500 mt-1 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
+                        {formatTime(message.timestamp)}
+                      </div>
+                    </div>
+
+                    {message.role === 'user' && (
+                      <Avatar className="w-6 h-6 mt-1 order-2">
+                        <AvatarFallback className="bg-gray-500 text-white">
+                          <User className="w-3 h-3" />
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                  </div>
+                ))}
+                
+                {isChatLoading && (
+                  <div className="flex gap-3 mb-4 justify-start">
+                    <Avatar className="w-6 h-6 mt-1">
+                      <AvatarFallback className="bg-blue-500 text-white">
+                        <Bot className="w-3 h-3" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="bg-gray-100 rounded-lg px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex space-x-1">
+                          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        </div>
+                        <span className="text-xs text-gray-600">Analyzing...</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle className="w-5 h-5" />
-                    <span className="text-sm font-medium">Processed</span>
-                  </div>
-                </div>
-                
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h5 className="font-medium text-gray-900 mb-3">Data Preview</h5>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full border border-gray-200">
-                      <tbody>
-                        {file.preview.map((row, rowIndex) => (
-                          <tr key={rowIndex} className={rowIndex === 0 ? 'bg-gray-100 font-medium' : 'bg-white'}>
-                            {row.map((cell, cellIndex) => (
-                              <td key={cellIndex} className="px-3 py-2 border-r border-gray-200 text-sm">
-                                {cell.trim() || '—'}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  {file.preview.length > 5 && (
-                    <p className="text-xs text-gray-500 mt-2">Showing first 6 rows and 5 columns</p>
-                  )}
-                </div>
-              </Card>
-            ))}
-          </div>
+                )}
+              </ScrollArea>
+              
+              <div className="p-4 border-t">
+                <form onSubmit={handleChatSubmit} className="flex gap-2">
+                  <Input
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder="Ask about your data..."
+                    className="flex-1"
+                    disabled={isChatLoading}
+                  />
+                  <Button type="submit" disabled={isChatLoading || !chatInput.trim()} size="sm">
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </form>
+              </div>
+            </Card>
+          ) : (
+            <Card className="p-4">
+              <Button
+                onClick={() => setShowChat(true)}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Start chatting with your data
+              </Button>
+            </Card>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
