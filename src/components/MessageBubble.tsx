@@ -35,9 +35,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
   };
 
   return (
-    <div className={`flex gap-3 mb-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
+    <div className={`flex gap-3 mb-4 animate-fade-in ${isUser ? 'justify-end' : 'justify-start'}`}>
       {!isUser && (
-        <Avatar className="w-8 h-8 mt-1">
+        <Avatar className="w-8 h-8 mt-1 hover-scale">
           <AvatarFallback className="bg-gray-500 text-white dark:bg-gray-600">
             <Bot className="w-4 h-4" />
           </AvatarFallback>
@@ -45,7 +45,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
       )}
       
       <div className={`max-w-[80%] ${isUser ? 'order-1' : 'order-2'}`}>
-        <div className={`rounded-2xl px-4 py-3 ${
+        <div className={`rounded-2xl px-4 py-3 transition-all duration-300 hover:shadow-md ${
           isUser 
             ? 'bg-blue-500 text-white rounded-br-md' 
             : 'bg-gray-100 text-gray-900 rounded-bl-md dark:bg-gray-700 dark:text-gray-100'
@@ -53,20 +53,19 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
           {isUser ? (
             <p className="text-white">{message.content}</p>
           ) : (
-            <div className="prose prose-sm max-w-none dark:prose-invert">
+            <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-gray-100">
               <ReactMarkdown 
                 remarkPlugins={[remarkGfm]}
-                className="text-gray-900 dark:text-gray-100"
                 components={{
                   table: ({ children }) => (
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full border border-gray-300 dark:border-gray-600">
+                    <div className="overflow-x-auto my-4">
+                      <table className="min-w-full border border-gray-300 dark:border-gray-600 rounded-lg">
                         {children}
                       </table>
                     </div>
                   ),
                   th: ({ children }) => (
-                    <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 bg-gray-50 dark:bg-gray-800 font-semibold">
+                    <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 bg-gray-50 dark:bg-gray-800 font-semibold text-left">
                       {children}
                     </th>
                   ),
@@ -78,15 +77,39 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
                   code: ({ children, className }) => {
                     const isInline = !className;
                     return isInline ? (
-                      <code className="bg-gray-200 dark:bg-gray-600 px-1 py-0.5 rounded text-sm">
+                      <code className="bg-gray-200 dark:bg-gray-600 px-1 py-0.5 rounded text-sm font-mono">
                         {children}
                       </code>
                     ) : (
-                      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg overflow-x-auto">
+                      <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg overflow-x-auto my-3">
                         <code className={className}>{children}</code>
                       </pre>
                     );
                   },
+                  h1: ({ children }) => (
+                    <h1 className="text-xl font-bold mb-3 text-gray-900 dark:text-gray-100">{children}</h1>
+                  ),
+                  h2: ({ children }) => (
+                    <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">{children}</h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 className="text-md font-medium mb-2 text-gray-900 dark:text-gray-100">{children}</h3>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="list-disc list-inside mb-3 space-y-1">{children}</ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="list-decimal list-inside mb-3 space-y-1">{children}</ol>
+                  ),
+                  li: ({ children }) => (
+                    <li className="text-gray-800 dark:text-gray-200">{children}</li>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-semibold text-gray-900 dark:text-gray-100">{children}</strong>
+                  ),
+                  em: ({ children }) => (
+                    <em className="italic text-gray-800 dark:text-gray-200">{children}</em>
+                  ),
                 }}
               >
                 {message.content}
@@ -98,7 +121,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
               variant="ghost"
               size="sm"
               onClick={() => copyToClipboard(message.content)}
-              className="mt-2 h-6 w-6 p-0 hover:bg-gray-200 dark:hover:bg-gray-600"
+              className="mt-2 h-6 w-6 p-0 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
             >
               <Copy className="w-3 h-3" />
             </Button>
@@ -110,7 +133,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
       </div>
 
       {isUser && (
-        <Avatar className="w-8 h-8 mt-1 order-2">
+        <Avatar className="w-8 h-8 mt-1 order-2 hover-scale">
           <AvatarFallback className="bg-blue-500 text-white">
             <User className="w-4 h-4" />
           </AvatarFallback>
