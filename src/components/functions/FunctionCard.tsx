@@ -35,16 +35,18 @@ export const FunctionCard: React.FC<FunctionCardProps> = ({
   const getDisabledReason = () => {
     if (isExecuting) return 'Function is executing...';
     if (isMaintenance) return 'Function is under maintenance';
-    if (!hasApiKey) return 'API key required';
-    if (!hasFiles) return 'No files uploaded';
+    if (!hasApiKey) return 'API key required - Please set it in the chat interface';
+    if (!hasFiles) return 'No files uploaded - Please upload CSV files first';
     return '';
   };
 
-  console.log('FunctionCard render:', {
+  // Add more detailed logging to debug the issue
+  console.log('FunctionCard debug:', {
     functionId: func.id,
-    isExecuteDisabled,
+    filesLength,
     hasFiles,
     hasApiKey,
+    isExecuteDisabled,
     status: func.status,
     reason: getDisabledReason()
   });
@@ -65,7 +67,8 @@ export const FunctionCard: React.FC<FunctionCardProps> = ({
       <div className="flex gap-2">
         <Button 
           onClick={() => {
-            console.log('Execute button clicked:', func.id);
+            console.log('Execute button clicked for function:', func.id);
+            console.log('Current state:', { hasFiles, hasApiKey, isExecuteDisabled });
             onExecute(func.id);
           }}
           disabled={isExecuteDisabled}

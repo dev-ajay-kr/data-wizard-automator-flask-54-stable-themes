@@ -23,11 +23,18 @@ export const Functions: React.FC = () => {
   const { toast } = useToast();
   const { files } = useFiles();
 
+  // Add detailed logging to debug file context
+  console.log('Functions component render - Files context:', {
+    filesCount: files?.length || 0,
+    files: files?.map(f => ({ name: f.name, size: f.size, type: f.type })) || [],
+    hasFiles: files && files.length > 0
+  });
+
   const executeFunction = async (functionId: string) => {
     console.log('=== Function Execution Started ===');
     console.log('Function ID:', functionId);
-    console.log('Files available:', files.length);
-    console.log('Files data:', files.map(f => ({ name: f.name, size: f.size, type: f.type })));
+    console.log('Files available:', files?.length || 0);
+    console.log('Files data:', files?.map(f => ({ name: f.name, size: f.size, type: f.type })) || []);
 
     // Check for API key first
     const apiKey = localStorage.getItem('gemini_api_key');
@@ -41,7 +48,7 @@ export const Functions: React.FC = () => {
       return;
     }
 
-    if (files.length === 0) {
+    if (!files || files.length === 0) {
       console.warn('No files uploaded');
       toast({
         title: "No Files Uploaded",
@@ -143,7 +150,7 @@ export const Functions: React.FC = () => {
         message: error.message,
         stack: error.stack,
         functionId,
-        filesCount: files.length
+        filesCount: files?.length || 0
       });
       
       setFunctionResult({
@@ -223,7 +230,7 @@ export const Functions: React.FC = () => {
           </div>
         )}
         
-        {files.length > 0 ? (
+        {files && files.length > 0 ? (
           <div className="mt-2">
             <Badge variant="outline" className="text-xs">
               {files.length} file(s) uploaded - Ready for processing
@@ -267,7 +274,7 @@ export const Functions: React.FC = () => {
                     key={func.id} 
                     func={func}
                     executingFunction={executingFunction}
-                    filesLength={files.length}
+                    filesLength={files?.length || 0}
                     onExecute={executeFunction}
                     onView={handleViewFunction}
                     onSettings={handleSettings}
@@ -283,7 +290,7 @@ export const Functions: React.FC = () => {
                     key={func.id} 
                     func={func}
                     executingFunction={executingFunction}
-                    filesLength={files.length}
+                    filesLength={files?.length || 0}
                     onExecute={executeFunction}
                     onView={handleViewFunction}
                     onSettings={handleSettings}
@@ -299,7 +306,7 @@ export const Functions: React.FC = () => {
                     key={func.id} 
                     func={func}
                     executingFunction={executingFunction}
-                    filesLength={files.length}
+                    filesLength={files?.length || 0}
                     onExecute={executeFunction}
                     onView={handleViewFunction}
                     onSettings={handleSettings}
@@ -337,7 +344,7 @@ export const Functions: React.FC = () => {
                   selectedFunction={selectedFunction}
                   functionResult={functionResult}
                   functionDetails={getSelectedFunctionDetails()}
-                  filesLength={files.length}
+                  filesLength={files?.length || 0}
                   onCloseFunctionDetails={() => setShowFunctionDetails(false)}
                   onExecuteFunction={executeFunction}
                   onExportToExcel={handleExportToExcel}
