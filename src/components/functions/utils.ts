@@ -96,3 +96,32 @@ export const getStatusColor = (status: string) => {
     default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
   }
 };
+
+// Utility to check if API key is available
+export const isGeminiApiAvailable = (): boolean => {
+  return !!localStorage.getItem('gemini_api_key');
+};
+
+// Enhanced file data processing
+export const processFileDataForAnalysis = (files: any[]): string => {
+  if (!files || files.length === 0) {
+    return 'No data files available for analysis.';
+  }
+
+  return files.map(file => {
+    const basicInfo = `File: ${file.name}\nType: ${file.type}\nSize: ${file.size} bytes`;
+    
+    if (file.parsedData && file.parsedData.length > 0) {
+      const sampleData = file.parsedData.slice(0, 5);
+      const columns = Object.keys(file.parsedData[0]);
+      return `${basicInfo}\nRows: ${file.parsedData.length}\nColumns: [${columns.join(', ')}]\nSample Data:\n${JSON.stringify(sampleData, null, 2)}`;
+    }
+    
+    if (file.preview && file.preview.length > 0) {
+      const previewText = file.preview.slice(0, 5).map(row => row.join(',')).join('\n');
+      return `${basicInfo}\nPreview:\n${previewText}`;
+    }
+    
+    return basicInfo;
+  }).join('\n\n');
+};

@@ -1,17 +1,19 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Code, FileText, Zap, Settings, BookOpen, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
+import { Code, FileText, Zap, Settings, BookOpen, ChevronDown, ChevronUp, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useFiles } from '@/contexts/FileContext';
+import { useGemini } from '@/hooks/useGemini';
 import { FunctionCard } from './functions/FunctionCard';
 import { PreviewPanel } from './functions/PreviewPanel';
 import { DocumentationTab } from './functions/DocumentationTab';
 import { etlFunctions, analyticsFunctions, automationFunctions } from './functions/data';
-import { callGeminiAPI, exportToExcel, exportToPNG } from './functions/utils';
+import { exportToExcel, exportToPNG, processFileDataForAnalysis } from './functions/utils';
 import { FunctionResult } from './functions/types';
 
 export const Functions: React.FC = () => {
@@ -21,20 +23,22 @@ export const Functions: React.FC = () => {
   const [showPreview, setShowPreview] = useState(true);
   const [showFunctionDetails, setShowFunctionDetails] = useState(false);
   const { toast } = useToast();
-  const { files } = useFiles();
+  const { files, getFileData, getParsedData } = useFiles();
+  const { callGemini, isLoading: geminiLoading } = useGemini();
 
-  // Add detailed logging to debug file context
-  console.log('Functions component render - Files context:', {
+  // Enhanced logging for debugging
+  console.log('Functions component render:', {
     filesCount: files?.length || 0,
-    files: files?.map(f => ({ name: f.name, size: f.size, type: f.type })) || [],
-    hasFiles: files && files.length > 0
+    filesWithData: files?.filter(f => f.parsedData && f.parsedData.length > 0).length || 0,
+    totalParsedRows: getParsedData()?.length || 0,
+    apiKeyAvailable: !!localStorage.getItem('gemini_api_key')
   });
 
   const executeFunction = async (functionId: string) => {
-    console.log('=== Function Execution Started ===');
+    console.log('=== Enhanced Function Execution Started ===');
     console.log('Function ID:', functionId);
     console.log('Files available:', files?.length || 0);
-    console.log('Files data:', files?.map(f => ({ name: f.name, size: f.size, type: f.type })) || []);
+    console.log('Parsed data rows:', getParsedData()?.length || 0);
 
     // Check for API key first
     const apiKey = localStorage.getItem('gemini_api_key');
@@ -85,73 +89,91 @@ export const Functions: React.FC = () => {
     setSelectedFunction(functionId);
     
     try {
-      console.log('Preparing file context...');
-      const fileContext = files.map(file => {
-        const preview = file.preview?.slice(0, 10).map(row => row.join(',')).join('\n') || '';
-        return `File: ${file.name}\nType: ${file.type}\nSize: ${file.size} bytes\nColumns: ${file.preview?.[0]?.length || 0}\nRows: ${file.preview?.length || 0}\nPreview:\n${preview}`;
-      }).join('\n\n');
-
-      console.log('File context prepared, length:', fileContext.length);
+      console.log('Preparing enhanced file context...');
+      const fileContext = processFileDataForAnalysis(files);
+      const parsedData = getParsedData();
+      
+      console.log('Enhanced file context prepared:', {
+        contextLength: fileContext.length,
+        parsedDataRows: parsedData.length
+      });
 
       let prompt = '';
       switch (functionId) {
         case 'data-cleansing':
-          prompt = 'Analyze the data for quality issues including duplicates, missing values, inconsistent formats, and outliers. Provide specific recommendations for data cleansing with counts and percentages.';
+          prompt = `Analyze the uploaded data for quality issues including duplicates, missing values, inconsistent formats, and outliers. 
+          Use the actual data provided to give specific counts, percentages, and examples. 
+          Provide actionable recommendations for data cleansing with detailed steps.`;
           break;
         case 'data-transformation':
-          prompt = 'Suggest data transformations to improve data structure and usability. Include normalization opportunities, data type conversions, and business rule applications.';
+          prompt = `Examine the data structure and suggest specific transformations to improve usability. 
+          Include normalization opportunities, data type conversions, calculated fields, and business rule applications.
+          Reference the actual column names and data types from the uploaded files.`;
           break;
         case 'data-validation':
-          prompt = 'Validate data integrity, check for business rule violations, and assess overall data quality. Provide validation scores and specific issues found.';
+          prompt = `Validate data integrity by checking business rules, data consistency, and quality metrics.
+          Provide validation scores for each file and identify specific records with issues.
+          Give actionable recommendations based on the actual data patterns observed.`;
           break;
         case 'statistical-analysis':
-          prompt = 'Perform comprehensive statistical analysis including descriptive statistics, distributions, correlations, and significance tests. Provide numerical results and interpretations.';
+          prompt = `Perform comprehensive statistical analysis on the numerical columns in the data.
+          Include descriptive statistics, distributions, correlations, and trend analysis.
+          Use the actual data to provide real insights and statistical measures.`;
           break;
         case 'correlation-analysis':
-          prompt = 'Analyze correlations between variables, identify strong relationships, and provide insights about dependencies in the data.';
+          prompt = `Analyze correlations between numerical variables in the uploaded data.
+          Identify strong positive/negative relationships and provide business insights.
+          Use actual column names and calculate real correlation coefficients where possible.`;
           break;
         case 'outlier-detection':
-          prompt = 'Detect outliers and anomalies in the data using statistical methods. Identify specific records and explain why they are considered outliers.';
+          prompt = `Detect outliers and anomalies in the numerical data using statistical methods.
+          Identify specific records that are outliers and explain why based on the data distribution.
+          Provide recommendations for handling these outliers.`;
           break;
         case 'schedule-etl':
-          prompt = 'Based on the data characteristics, suggest useful ETL job schedules that would enhance data quality and provide value. Include specific job types, frequencies, and benefits.';
+          prompt = `Based on the data characteristics and business patterns observed, suggest ETL job schedules.
+          Include specific job types, optimal frequencies, and expected benefits.
+          Consider data volume, update patterns, and business requirements.`;
           break;
         case 'alert-system':
-          prompt = 'Recommend alert configurations for data quality monitoring based on the data patterns observed. Include thresholds and trigger conditions.';
+          prompt = `Recommend data quality alert configurations based on the patterns in the uploaded data.
+          Include specific thresholds, trigger conditions, and monitoring recommendations.
+          Base suggestions on actual data characteristics observed.`;
           break;
         case 'backup-restore':
-          prompt = 'Suggest backup and restore strategies appropriate for this data type and volume. Include best practices and scheduling recommendations.';
+          prompt = `Suggest backup and restore strategies for this specific data type and volume.
+          Include scheduling recommendations, retention policies, and disaster recovery procedures.
+          Consider the data criticality and update frequency patterns.`;
           break;
         default:
-          prompt = 'Analyze the data and provide relevant insights and recommendations.';
+          prompt = 'Analyze the uploaded data and provide relevant insights and actionable recommendations.';
       }
 
-      console.log('Calling Gemini API with prompt:', prompt.substring(0, 100) + '...');
-      const response = await callGeminiAPI(prompt, fileContext);
-      console.log('API response received, length:', response.length);
+      console.log('Calling Gemini API with enhanced prompt...');
+      const response = await callGemini(prompt, fileContext);
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      console.log('Enhanced API response received');
       
       setFunctionResult({
         title: selectedFunc.name,
-        summary: `Analysis completed for ${files.length} file(s) with ${files.reduce((total, file) => total + (file.preview?.length || 0), 0)} total rows`,
-        details: response,
+        summary: `Analysis completed for ${files.length} file(s) with ${parsedData.length} total data rows`,
+        details: response.text,
         timestamp: new Date().toISOString(),
         functionId: functionId,
         exportable: true
       });
 
-      console.log('Function execution completed successfully');
+      console.log('Enhanced function execution completed successfully');
       toast({
-        title: "Function Executed",
-        description: `${selectedFunc.name} completed successfully using your uploaded data.`,
+        title: "Function Executed Successfully",
+        description: `${selectedFunc.name} completed with enhanced data analysis.`,
       });
     } catch (error: any) {
-      console.error('Function execution error:', error);
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        functionId,
-        filesCount: files?.length || 0
-      });
+      console.error('Enhanced function execution error:', error);
       
       setFunctionResult({
         title: 'Execution Error',
@@ -170,7 +192,7 @@ export const Functions: React.FC = () => {
       });
     } finally {
       setExecutingFunction(null);
-      console.log('=== Function Execution Ended ===');
+      console.log('=== Enhanced Function Execution Ended ===');
     }
   };
 
@@ -208,6 +230,7 @@ export const Functions: React.FC = () => {
   // Check if API key is available
   const apiKey = localStorage.getItem('gemini_api_key');
   const showApiKeyWarning = !apiKey;
+  const hasProcessedData = getParsedData().length > 0;
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -216,7 +239,7 @@ export const Functions: React.FC = () => {
           <Code className="w-6 h-6" />
           Functions
         </h2>
-        <p className="text-gray-600 dark:text-gray-400">Manage and execute data processing functions and automation workflows</p>
+        <p className="text-gray-600 dark:text-gray-400">Manage and execute data processing functions with enhanced file analysis</p>
         
         {showApiKeyWarning && (
           <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
@@ -230,19 +253,32 @@ export const Functions: React.FC = () => {
           </div>
         )}
         
-        {files && files.length > 0 ? (
-          <div className="mt-2">
-            <Badge variant="outline" className="text-xs">
-              {files.length} file(s) uploaded - Ready for processing
-            </Badge>
-          </div>
-        ) : (
-          <div className="mt-2">
-            <Badge variant="outline" className="text-xs bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-              No files uploaded - Upload data files to enable function execution
-            </Badge>
-          </div>
-        )}
+        <div className="mt-3 flex gap-4">
+          {files && files.length > 0 ? (
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                {files.length} file(s) uploaded • {getParsedData().length} data rows ready
+              </Badge>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-orange-500" />
+              <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
+                No files uploaded - Upload data files to enable functions
+              </Badge>
+            </div>
+          )}
+          
+          {apiKey && (
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                Gemini API Ready
+              </Badge>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="space-y-6">
