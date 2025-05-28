@@ -2,7 +2,10 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Download, Image as ImageIcon } from 'lucide-react';
+import { exportChartAsPNG, exportToExcel, generateChartId } from '@/utils/exportUtils';
 import { 
   BarChart, 
   Bar, 
@@ -26,6 +29,7 @@ interface ChartData {
   xKey?: string;
   yKey?: string;
   config?: any;
+  id?: string;
 }
 
 interface ChartVisualizationProps {
@@ -159,27 +163,55 @@ export const ChartVisualization: React.FC<ChartVisualizationProps> = ({ charts, 
   if (!charts || charts.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-        No chart data available
+        📊 No chart data available
       </div>
     );
   }
 
+  // Ensure each chart has a unique ID
+  const chartsWithIds = charts.map((chart, index) => ({
+    ...chart,
+    id: chart.id || generateChartId(`chart-${index}`)
+  }));
+
   return (
     <div className={`space-y-6 ${className}`}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {charts.map((chart, index) => (
-          <Card key={index} className="p-6 bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
+        {chartsWithIds.map((chart, index) => (
+          <Card key={index} id={chart.id} className="p-6 bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {chart.title}
+                **{chart.title}**
               </h3>
-              <Badge variant="outline" className="text-xs">
-                {chart.type.toUpperCase()}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">
+                  {chart.type.toUpperCase()}
+                </Badge>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => exportToExcel(chart.data, chart.title)}
+                    className="h-7 px-2"
+                    title="Export as Excel"
+                  >
+                    <Download className="w-3 h-3" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => exportChartAsPNG(chart.id!, chart.title)}
+                    className="h-7 px-2"
+                    title="Export as PNG"
+                  >
+                    <ImageIcon className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
             </div>
             {renderChart(chart, index)}
             <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-              {chart.data.length} data points
+              📈 **{chart.data.length}** data points
             </div>
           </Card>
         ))}

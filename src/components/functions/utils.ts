@@ -1,4 +1,6 @@
 
+import { exportToExcel, exportChartAsPNG, exportToText } from '@/utils/exportUtils';
+
 export const callGeminiAPI = async (prompt: string, fileContext: string) => {
   const apiKey = localStorage.getItem('gemini_api_key');
   if (!apiKey) {
@@ -33,60 +35,8 @@ export const callGeminiAPI = async (prompt: string, fileContext: string) => {
   return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 };
 
-export const exportToExcel = async (data: any, filename: string, toast: any) => {
-  try {
-    console.log('Exporting to Excel:', filename, data);
-    const csvContent = convertToCSV(data);
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${filename.replace(/[^a-z0-9]/gi, '_')}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-    
-    toast({
-      title: "Export Complete",
-      description: `Results exported as ${filename}.csv`,
-    });
-  } catch (error) {
-    console.error('Export error:', error);
-    toast({
-      title: "Export Failed",
-      description: "Failed to export data. Please try again.",
-      variant: "destructive"
-    });
-  }
-};
-
-export const exportToPNG = async (filename: string, toast: any) => {
-  try {
-    console.log('PNG export requested for:', filename);
-    toast({
-      title: "PNG Export",
-      description: "Chart export as PNG is coming soon! Use Excel export for now.",
-    });
-  } catch (error) {
-    console.error('PNG export error:', error);
-    toast({
-      title: "PNG Export Failed",
-      description: "Failed to export chart. Please try again.",
-      variant: "destructive"
-    });
-  }
-};
-
-const convertToCSV = (data: any) => {
-  if (typeof data === 'string') {
-    return data;
-  }
-  if (Array.isArray(data)) {
-    return data.map(item => JSON.stringify(item)).join('\n');
-  }
-  return JSON.stringify(data, null, 2);
-};
+// Re-export the utility functions
+export { exportToExcel, exportChartAsPNG, exportToText };
 
 export const getStatusColor = (status: string) => {
   switch (status) {

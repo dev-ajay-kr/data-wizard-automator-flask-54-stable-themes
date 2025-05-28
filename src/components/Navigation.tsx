@@ -19,8 +19,13 @@ export const Navigation: React.FC = () => {
   const { darkMode, toggleDarkMode } = useTheme();
 
   const isActive = (path: string) => {
-    if (path === '/') return location.pathname === '/';
-    return location.pathname.includes('/chat');
+    if (path === '/') return location.pathname === '/' && !location.search;
+    if (path === '/chat') return location.pathname === '/chat' && !location.search;
+    if (path.includes('?tab=')) {
+      const [pathname, search] = path.split('?');
+      return location.pathname === pathname && location.search.includes(search);
+    }
+    return location.pathname === path;
   };
 
   return (
@@ -29,9 +34,12 @@ export const Navigation: React.FC = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center space-x-4">
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 hover-scale">
-              ETL Hub
-            </div>
+            <Link 
+              to="/" 
+              className="text-2xl font-bold text-blue-600 dark:text-blue-400 hover-scale transition-transform duration-200 hover:scale-105"
+            >
+              🔧 **ETL Hub**
+            </Link>
           </div>
 
           {/* Navigation Links */}
