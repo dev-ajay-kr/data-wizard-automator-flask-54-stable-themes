@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -12,6 +11,7 @@ import { useGemini } from '@/hooks/useGemini';
 import { FunctionCard } from './functions/FunctionCard';
 import { PreviewPanel } from './functions/PreviewPanel';
 import { DocumentationTab } from './functions/DocumentationTab';
+import { ResponseFormatter } from './ResponseFormatter';
 import { etlFunctions, analyticsFunctions, automationFunctions } from './functions/data';
 import { exportToExcel, exportToPNG, processFileDataForAnalysis } from './functions/utils';
 import { FunctionResult } from './functions/types';
@@ -26,7 +26,6 @@ export const Functions: React.FC = () => {
   const { files, getFileData, getParsedData } = useFiles();
   const { callGemini, isLoading: geminiLoading } = useGemini();
 
-  // Enhanced logging for debugging
   console.log('Functions component render:', {
     filesCount: files?.length || 0,
     filesWithData: files?.filter(f => f.parsedData && f.parsedData.length > 0).length || 0,
@@ -40,7 +39,6 @@ export const Functions: React.FC = () => {
     console.log('Files available:', files?.length || 0);
     console.log('Parsed data rows:', getParsedData()?.length || 0);
 
-    // Check for API key first
     const apiKey = localStorage.getItem('gemini_api_key');
     if (!apiKey) {
       console.error('No API key found');
@@ -101,52 +99,83 @@ export const Functions: React.FC = () => {
       let prompt = '';
       switch (functionId) {
         case 'data-cleansing':
-          prompt = `Analyze the uploaded data for quality issues including duplicates, missing values, inconsistent formats, and outliers. 
-          Use the actual data provided to give specific counts, percentages, and examples. 
-          Provide actionable recommendations for data cleansing with detailed steps.`;
-          break;
-        case 'data-transformation':
-          prompt = `Examine the data structure and suggest specific transformations to improve usability. 
-          Include normalization opportunities, data type conversions, calculated fields, and business rule applications.
-          Reference the actual column names and data types from the uploaded files.`;
-          break;
-        case 'data-validation':
-          prompt = `Validate data integrity by checking business rules, data consistency, and quality metrics.
-          Provide validation scores for each file and identify specific records with issues.
-          Give actionable recommendations based on the actual data patterns observed.`;
+          prompt = `## Data Quality Analysis Request
+
+**Objective**: Perform comprehensive data cleansing analysis
+
+**Tasks**:
+1. **Missing Data Analysis**
+   - Count and percentage of missing values per column
+   - Missing data patterns (MCAR, MAR, MNAR)
+   
+2. **Duplicate Detection**
+   - Exact duplicates count
+   - Partial duplicates identification
+   
+3. **Data Type Inconsistencies**
+   - Expected vs actual data types
+   - Format inconsistencies within columns
+   
+4. **Outlier Detection**
+   - Statistical outliers using IQR method
+   - Domain-specific outliers
+   
+5. **Recommendations**
+   - Prioritized action items
+   - Data cleansing strategies
+   
+**Format**: Use tables, headers, and bullet points for clear presentation.`;
           break;
         case 'statistical-analysis':
-          prompt = `Perform comprehensive statistical analysis on the numerical columns in the data.
-          Include descriptive statistics, distributions, correlations, and trend analysis.
-          Use the actual data to provide real insights and statistical measures.`;
-          break;
-        case 'correlation-analysis':
-          prompt = `Analyze correlations between numerical variables in the uploaded data.
-          Identify strong positive/negative relationships and provide business insights.
-          Use actual column names and calculate real correlation coefficients where possible.`;
-          break;
-        case 'outlier-detection':
-          prompt = `Detect outliers and anomalies in the numerical data using statistical methods.
-          Identify specific records that are outliers and explain why based on the data distribution.
-          Provide recommendations for handling these outliers.`;
-          break;
-        case 'schedule-etl':
-          prompt = `Based on the data characteristics and business patterns observed, suggest ETL job schedules.
-          Include specific job types, optimal frequencies, and expected benefits.
-          Consider data volume, update patterns, and business requirements.`;
-          break;
-        case 'alert-system':
-          prompt = `Recommend data quality alert configurations based on the patterns in the uploaded data.
-          Include specific thresholds, trigger conditions, and monitoring recommendations.
-          Base suggestions on actual data characteristics observed.`;
-          break;
-        case 'backup-restore':
-          prompt = `Suggest backup and restore strategies for this specific data type and volume.
-          Include scheduling recommendations, retention policies, and disaster recovery procedures.
-          Consider the data criticality and update frequency patterns.`;
+          prompt = `## Statistical Analysis Request
+
+**Objective**: Comprehensive statistical analysis of numerical data
+
+**Analysis Required**:
+
+### Descriptive Statistics
+| Metric | Column 1 | Column 2 | Column 3 |
+|--------|----------|----------|----------|
+| Mean | | | |
+| Median | | | |
+| Std Dev | | | |
+| Min/Max | | | |
+
+### Distribution Analysis
+- **Normality tests** for each numerical column
+- **Skewness and kurtosis** measurements
+- **Outlier identification** using statistical methods
+
+### Correlation Analysis
+- Correlation matrix for numerical variables
+- Strong relationships identification (|r| > 0.7)
+- Statistical significance testing
+
+### Key Insights
+- **Business implications** of statistical findings
+- **Data quality** observations
+- **Recommendations** for further analysis`;
           break;
         default:
-          prompt = 'Analyze the uploaded data and provide relevant insights and actionable recommendations.';
+          prompt = `Analyze the uploaded data for ${selectedFunc.name}. Provide structured analysis with:
+          
+## Analysis Overview
+Brief summary of the analysis performed
+
+## Key Findings
+- **Finding 1**: Description with data support
+- **Finding 2**: Description with data support
+- **Finding 3**: Description with data support
+
+## Detailed Results
+Comprehensive analysis results with tables and metrics
+
+## Recommendations
+1. **Immediate actions** required
+2. **Strategic improvements** suggested
+3. **Further analysis** recommendations
+
+Use proper markdown formatting with headers (##, ###), tables (|), lists (-), and emphasis (**bold**, *italic*).`;
       }
 
       console.log('Calling Gemini API with enhanced prompt...');
@@ -227,77 +256,113 @@ export const Functions: React.FC = () => {
     exportToPNG(title, toast);
   };
 
-  // Check if API key is available
   const apiKey = localStorage.getItem('gemini_api_key');
   const showApiKeyWarning = !apiKey;
   const hasProcessedData = getParsedData().length > 0;
 
   return (
     <div className="max-w-7xl mx-auto p-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-2 flex items-center gap-2">
-          <Code className="w-6 h-6" />
-          Functions
-        </h2>
-        <p className="text-gray-600 dark:text-gray-400">Manage and execute data processing functions with enhanced file analysis</p>
+      <div className="mb-8">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+            <Code className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              Functions
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 text-lg">
+              Execute powerful data processing functions with AI-enhanced analysis
+            </p>
+          </div>
+        </div>
         
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              {showApiKeyWarning ? (
+                <AlertTriangle className="w-5 h-5 text-yellow-500" />
+              ) : (
+                <CheckCircle className="w-5 h-5 text-green-500" />
+              )}
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  API Status
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {showApiKeyWarning ? 'API Key Required' : 'Gemini AI Ready'}
+                </p>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              {files && files.length > 0 ? (
+                <CheckCircle className="w-5 h-5 text-green-500" />
+              ) : (
+                <AlertTriangle className="w-5 h-5 text-orange-500" />
+              )}
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  Data Files
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {files?.length || 0} files uploaded
+                </p>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              {hasProcessedData ? (
+                <CheckCircle className="w-5 h-5 text-green-500" />
+              ) : (
+                <AlertTriangle className="w-5 h-5 text-gray-400" />
+              )}
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  Data Rows
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {getParsedData().length} rows ready
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
         {showApiKeyWarning && (
-          <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
             <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
-              <AlertTriangle className="w-4 h-4" />
-              <span className="text-sm font-medium">API Key Required</span>
+              <AlertTriangle className="w-5 h-5" />
+              <span className="font-medium">API Key Required</span>
             </div>
             <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
               Please set your Gemini API key in the chat interface to enable function execution.
             </p>
           </div>
         )}
-        
-        <div className="mt-3 flex gap-4">
-          {files && files.length > 0 ? (
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-600" />
-              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                {files.length} file(s) uploaded • {getParsedData().length} data rows ready
-              </Badge>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-orange-500" />
-              <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
-                No files uploaded - Upload data files to enable functions
-              </Badge>
-            </div>
-          )}
-          
-          {apiKey && (
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-600" />
-              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                Gemini API Ready
-              </Badge>
-            </div>
-          )}
-        </div>
       </div>
 
-      <div className="space-y-6">
-        <div className="space-y-4">
+      <div className="space-y-8">
+        <div className="space-y-6">
           <Tabs defaultValue="etl" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="etl" className="flex items-center gap-2 text-sm">
+            <TabsList className="grid w-full grid-cols-4 bg-gray-100 dark:bg-gray-800">
+              <TabsTrigger value="etl" className="flex items-center gap-2 text-sm font-medium">
                 <Zap className="w-4 h-4" />
                 ETL Functions
               </TabsTrigger>
-              <TabsTrigger value="analytics" className="flex items-center gap-2 text-sm">
+              <TabsTrigger value="analytics" className="flex items-center gap-2 text-sm font-medium">
                 <FileText className="w-4 h-4" />
                 Analytics
               </TabsTrigger>
-              <TabsTrigger value="automation" className="flex items-center gap-2 text-sm">
+              <TabsTrigger value="automation" className="flex items-center gap-2 text-sm font-medium">
                 <Settings className="w-4 h-4" />
                 Automation
               </TabsTrigger>
-              <TabsTrigger value="docs" className="flex items-center gap-2 text-sm">
+              <TabsTrigger value="docs" className="flex items-center gap-2 text-sm font-medium">
                 <BookOpen className="w-4 h-4" />
                 Documentation
               </TabsTrigger>
@@ -357,9 +422,16 @@ export const Functions: React.FC = () => {
           </Tabs>
         </div>
 
-        <Card className="w-full">
-          <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b flex items-center justify-between">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Function Results</h3>
+        <Card className="w-full shadow-lg border-gray-200 dark:border-gray-700">
+          <div className="p-6 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                Function Results
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Detailed analysis results with enhanced formatting
+              </p>
+            </div>
             <Button
               variant="ghost"
               size="sm"
@@ -372,20 +444,57 @@ export const Functions: React.FC = () => {
           </div>
           
           {showPreview && (
-            <ScrollArea className="h-80">
-              <div className="p-4">
-                <PreviewPanel
-                  executingFunction={executingFunction}
-                  showFunctionDetails={showFunctionDetails}
-                  selectedFunction={selectedFunction}
-                  functionResult={functionResult}
-                  functionDetails={getSelectedFunctionDetails()}
-                  filesLength={files?.length || 0}
-                  onCloseFunctionDetails={() => setShowFunctionDetails(false)}
-                  onExecuteFunction={executeFunction}
-                  onExportToExcel={handleExportToExcel}
-                  onExportToPNG={handleExportToPNG}
-                />
+            <ScrollArea className="h-96">
+              <div className="p-6">
+                {functionResult && !executingFunction ? (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4">
+                      <div>
+                        <h4 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                          {functionResult.title}
+                        </h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {functionResult.summary}
+                        </p>
+                      </div>
+                      {functionResult.exportable && !functionResult.error && (
+                        <div className="flex gap-2">
+                          <Button 
+                            onClick={() => handleExportToExcel(functionResult.details, functionResult.title)}
+                            size="sm"
+                            variant="outline"
+                            className="flex items-center gap-1"
+                          >
+                            Export Results
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className={`rounded-lg ${functionResult.error ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700'}`}>
+                      <div className="p-6">
+                        <ResponseFormatter content={functionResult.details} />
+                      </div>
+                    </div>
+                    
+                    <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
+                      {functionResult.error ? 'Failed' : 'Executed'} at: {new Date(functionResult.timestamp).toLocaleString()}
+                    </div>
+                  </div>
+                ) : (
+                  <PreviewPanel
+                    executingFunction={executingFunction}
+                    showFunctionDetails={showFunctionDetails}
+                    selectedFunction={selectedFunction}
+                    functionResult={functionResult}
+                    functionDetails={getSelectedFunctionDetails()}
+                    filesLength={files?.length || 0}
+                    onCloseFunctionDetails={() => setShowFunctionDetails(false)}
+                    onExecuteFunction={executeFunction}
+                    onExportToExcel={handleExportToExcel}
+                    onExportToPNG={handleExportToPNG}
+                  />
+                )}
               </div>
             </ScrollArea>
           )}
