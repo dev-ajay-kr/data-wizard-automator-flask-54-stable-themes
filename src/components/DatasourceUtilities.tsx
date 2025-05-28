@@ -80,60 +80,61 @@ export const DatasourceUtilities: React.FC = () => {
     }
   ];
 
-  const callGeminiAPI = async (prompt: string, fileContext: string) => {
-    const apiKey = localStorage.getItem('gemini_api_key');
-    if (!apiKey) {
-      throw new Error('Gemini API key not found. Please set it in the chat interface.');
-    }
-
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: `${prompt}\n\nData Context:\n${fileContext}\n\nPlease provide a structured JSON response.`
-          }]
-        }]
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  };
-
   const exportToExcel = async (data: any, filename: string) => {
-    // This would typically use a library like xlsx
-    const csvContent = convertToCSV(data);
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${filename}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    try {
+      console.log('Exporting to Excel:', filename, data);
+      const csvContent = convertToCSV(data);
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${filename.replace(/[^a-z0-9]/gi, '_')}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Export Complete",
+        description: `Results exported as ${filename}.csv`,
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to export data. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const exportChartAsPNG = async (chartId: string, filename: string) => {
-    // This would capture the chart as PNG
-    toast({
-      title: "Export Started",
-      description: `Exporting ${filename} as PNG...`,
-    });
+    try {
+      console.log('PNG export requested for:', filename);
+      toast({
+        title: "PNG Export",
+        description: "Chart export as PNG is coming soon! Use Excel export for now.",
+      });
+    } catch (error) {
+      console.error('PNG export error:', error);
+      toast({
+        title: "PNG Export Failed",
+        description: "Failed to export chart. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const convertToCSV = (data: any) => {
+    if (typeof data === 'string') {
+      return data;
+    }
     if (Array.isArray(data)) {
+      if (data.length === 0) return '';
       const headers = Object.keys(data[0] || {});
       const csvRows = [
         headers.join(','),
-        ...data.map(row => headers.map(header => row[header]).join(','))
+        ...data.map(row => headers.map(header => row[header] || '').join(','))
       ];
       return csvRows.join('\n');
     }
@@ -306,37 +307,6 @@ export const DatasourceUtilities: React.FC = () => {
     } finally {
       setIsAnalyzing(false);
     }
-  };
-
-  const exportToExcel = async (data: any, filename: string) => {
-    const csvContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${filename.replace(/[^a-z0-9]/gi, '_')}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-    
-    toast({
-      title: "Export Complete",
-      description: `Results exported as ${filename}.csv`,
-    });
-  };
-
-  const exportChartAsPNG = async (chartId: string, filename: string) => {
-    toast({
-      title: "PNG Export",
-      description: "Chart export as PNG is coming soon! Use Excel export for now.",
-    });
-  };
-
-  const toggleSection = (category: string) => {
-    setCollapsedSections(prev => 
-      prev.includes(category) 
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
-    );
   };
 
   const categories = Array.from(new Set(utilities.map(u => u.category)));
