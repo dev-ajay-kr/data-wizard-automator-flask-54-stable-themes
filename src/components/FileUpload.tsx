@@ -26,6 +26,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ className = '', compact 
           type: file.type,
           content,
           uploadedAt: new Date(),
+          preview: undefined as string[][] | undefined,
         };
 
         // For CSV files, create preview
