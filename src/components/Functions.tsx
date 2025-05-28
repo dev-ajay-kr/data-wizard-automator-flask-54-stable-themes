@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Code, FileText, Zap, Settings, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
+import { Code, FileText, Zap, Settings, BookOpen, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useFiles } from '@/contexts/FileContext';
 import { FunctionCard } from './functions/FunctionCard';
@@ -25,7 +24,25 @@ export const Functions: React.FC = () => {
   const { files } = useFiles();
 
   const executeFunction = async (functionId: string) => {
+    console.log('=== Function Execution Started ===');
+    console.log('Function ID:', functionId);
+    console.log('Files available:', files.length);
+    console.log('Files data:', files.map(f => ({ name: f.name, size: f.size, type: f.type })));
+
+    // Check for API key first
+    const apiKey = localStorage.getItem('gemini_api_key');
+    if (!apiKey) {
+      console.error('No API key found');
+      toast({
+        title: "API Key Required",
+        description: "Please set your Gemini API key in the chat interface first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (files.length === 0) {
+      console.warn('No files uploaded');
       toast({
         title: "No Files Uploaded",
         description: "Please upload data files first to execute functions.",
@@ -34,11 +51,34 @@ export const Functions: React.FC = () => {
       return;
     }
 
-    console.log('Executing function:', functionId, 'with', files.length, 'files');
+    const selectedFunc = [...etlFunctions, ...analyticsFunctions, ...automationFunctions]
+      .find(f => f.id === functionId);
+    
+    if (!selectedFunc) {
+      console.error('Function not found:', functionId);
+      toast({
+        title: "Function Not Found",
+        description: "The requested function could not be found.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (selectedFunc.status === 'maintenance') {
+      console.warn('Function in maintenance:', functionId);
+      toast({
+        title: "Function Unavailable",
+        description: "This function is currently under maintenance.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setExecutingFunction(functionId);
     setSelectedFunction(functionId);
     
     try {
+      console.log('Preparing file context...');
       const fileContext = files.map(file => {
         const preview = file.preview?.slice(0, 10).map(row => row.join(',')).join('\n') || '';
         return `File: ${file.name}\nType: ${file.type}\nSize: ${file.size} bytes\nColumns: ${file.preview?.[0]?.length || 0}\nRows: ${file.preview?.length || 0}\nPreview:\n${preview}`;
@@ -79,12 +119,12 @@ export const Functions: React.FC = () => {
           prompt = 'Analyze the data and provide relevant insights and recommendations.';
       }
 
+      console.log('Calling Gemini API with prompt:', prompt.substring(0, 100) + '...');
       const response = await callGeminiAPI(prompt, fileContext);
-      
-      const functionName = etlFunctions.concat(analyticsFunctions, automationFunctions).find(f => f.id === functionId)?.name || 'Function Results';
+      console.log('API response received, length:', response.length);
       
       setFunctionResult({
-        title: functionName,
+        title: selectedFunc.name,
         summary: `Analysis completed for ${files.length} file(s) with ${files.reduce((total, file) => total + (file.preview?.length || 0), 0)} total rows`,
         details: response,
         timestamp: new Date().toISOString(),
@@ -95,19 +135,27 @@ export const Functions: React.FC = () => {
       console.log('Function execution completed successfully');
       toast({
         title: "Function Executed",
-        description: `${functionName} completed successfully using your uploaded data.`,
+        description: `${selectedFunc.name} completed successfully using your uploaded data.`,
       });
     } catch (error: any) {
       console.error('Function execution error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        functionId,
+        filesCount: files.length
+      });
+      
       setFunctionResult({
         title: 'Execution Error',
         summary: 'Function execution failed',
-        details: error.message || 'Unknown error occurred',
+        details: error.message || 'Unknown error occurred during function execution. Please check your API key and network connection.',
         timestamp: new Date().toISOString(),
         functionId: functionId,
         exportable: false,
         error: true
       });
+      
       toast({
         title: "Execution Failed",
         description: error.message || "Failed to execute function. Please check your API key and try again.",
@@ -115,6 +163,7 @@ export const Functions: React.FC = () => {
       });
     } finally {
       setExecutingFunction(null);
+      console.log('=== Function Execution Ended ===');
     }
   };
 
@@ -126,12 +175,13 @@ export const Functions: React.FC = () => {
   };
 
   const handleViewFunction = (functionId: string) => {
+    console.log('View function requested:', functionId);
     setSelectedFunction(functionId);
     setShowFunctionDetails(true);
-    console.log('View button clicked for function:', functionId);
   };
 
   const handleSettings = () => {
+    console.log('Settings requested');
     toast({
       title: "Settings",
       description: "Function settings coming soon!",
@@ -139,12 +189,18 @@ export const Functions: React.FC = () => {
   };
 
   const handleExportToExcel = (data: any, title: string) => {
+    console.log('Excel export requested:', title);
     exportToExcel(data, title, toast);
   };
 
   const handleExportToPNG = (title: string) => {
+    console.log('PNG export requested:', title);
     exportToPNG(title, toast);
   };
+
+  // Check if API key is available
+  const apiKey = localStorage.getItem('gemini_api_key');
+  const showApiKeyWarning = !apiKey;
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -154,10 +210,29 @@ export const Functions: React.FC = () => {
           Functions
         </h2>
         <p className="text-gray-600 dark:text-gray-400">Manage and execute data processing functions and automation workflows</p>
-        {files.length > 0 && (
+        
+        {showApiKeyWarning && (
+          <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
+              <AlertTriangle className="w-4 h-4" />
+              <span className="text-sm font-medium">API Key Required</span>
+            </div>
+            <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+              Please set your Gemini API key in the chat interface to enable function execution.
+            </p>
+          </div>
+        )}
+        
+        {files.length > 0 ? (
           <div className="mt-2">
             <Badge variant="outline" className="text-xs">
               {files.length} file(s) uploaded - Ready for processing
+            </Badge>
+          </div>
+        ) : (
+          <div className="mt-2">
+            <Badge variant="outline" className="text-xs bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+              No files uploaded - Upload data files to enable function execution
             </Badge>
           </div>
         )}

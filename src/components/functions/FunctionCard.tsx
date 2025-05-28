@@ -24,6 +24,31 @@ export const FunctionCard: React.FC<FunctionCardProps> = ({
   onView,
   onSettings
 }) => {
+  const isExecuting = executingFunction === func.id;
+  const isMaintenance = func.status === 'maintenance';
+  const hasFiles = filesLength > 0;
+  const hasApiKey = !!localStorage.getItem('gemini_api_key');
+  
+  // Button should be disabled if: executing, in maintenance, no files, or no API key
+  const isExecuteDisabled = isExecuting || isMaintenance || !hasFiles || !hasApiKey;
+
+  const getDisabledReason = () => {
+    if (isExecuting) return 'Function is executing...';
+    if (isMaintenance) return 'Function is under maintenance';
+    if (!hasApiKey) return 'API key required';
+    if (!hasFiles) return 'No files uploaded';
+    return '';
+  };
+
+  console.log('FunctionCard render:', {
+    functionId: func.id,
+    isExecuteDisabled,
+    hasFiles,
+    hasApiKey,
+    status: func.status,
+    reason: getDisabledReason()
+  });
+
   return (
     <Card className="p-4 hover:shadow-lg transition-shadow duration-200">
       <div className="flex items-start justify-between mb-3">
@@ -39,12 +64,16 @@ export const FunctionCard: React.FC<FunctionCardProps> = ({
       
       <div className="flex gap-2">
         <Button 
-          onClick={() => onExecute(func.id)}
-          disabled={executingFunction === func.id || func.status === 'maintenance' || filesLength === 0}
+          onClick={() => {
+            console.log('Execute button clicked:', func.id);
+            onExecute(func.id);
+          }}
+          disabled={isExecuteDisabled}
           size="sm"
           className="flex-1 text-xs"
+          title={isExecuteDisabled ? getDisabledReason() : `Execute ${func.name}`}
         >
-          {executingFunction === func.id ? (
+          {isExecuting ? (
             <>
               <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1"></div>
               Executing...
@@ -59,8 +88,12 @@ export const FunctionCard: React.FC<FunctionCardProps> = ({
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => onView(func.id)}
+          onClick={() => {
+            console.log('View button clicked:', func.id);
+            onView(func.id);
+          }}
           className="text-xs"
+          title={`View details for ${func.name}`}
         >
           <Eye className="w-3 h-3" />
         </Button>
@@ -68,7 +101,11 @@ export const FunctionCard: React.FC<FunctionCardProps> = ({
           variant="outline" 
           size="sm" 
           className="text-xs"
-          onClick={onSettings}
+          onClick={() => {
+            console.log('Settings button clicked');
+            onSettings();
+          }}
+          title="Function settings"
         >
           <Settings className="w-3 h-3" />
         </Button>
