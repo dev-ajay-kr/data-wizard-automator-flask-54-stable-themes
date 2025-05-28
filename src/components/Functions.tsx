@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Code, Play, FileText, Zap, Settings, BookOpen, ChevronDown, ChevronUp, Eye, Download, Image as ImageIcon } from 'lucide-react';
+import { Code, Play, FileText, Zap, Settings, BookOpen, ChevronDown, ChevronUp, Eye, Download, Image as ImageIcon, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useFiles } from '@/contexts/FileContext';
 
@@ -13,14 +14,18 @@ export const Functions: React.FC = () => {
   const [selectedFunction, setSelectedFunction] = useState<string | null>(null);
   const [functionResult, setFunctionResult] = useState<any>(null);
   const [showPreview, setShowPreview] = useState(true);
+  const [showFunctionDetails, setShowFunctionDetails] = useState(false);
   const { toast } = useToast();
   const { files } = useFiles();
 
   const callGeminiAPI = async (prompt: string, fileContext: string) => {
     const apiKey = localStorage.getItem('gemini_api_key');
     if (!apiKey) {
-      throw new Error('Gemini API key not found. Please set it in the chat interface.');
+      throw new Error('Gemini API key not found. Please set it in the chat interface first.');
     }
+
+    console.log('Making API call to Gemini with prompt:', prompt.substring(0, 100) + '...');
+    console.log('File context length:', fileContext.length);
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
@@ -37,31 +42,68 @@ export const Functions: React.FC = () => {
     });
 
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('API Error:', response.status, errorText);
+      throw new Error(`API Error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('API Response received:', data);
     return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
   };
 
   const exportToExcel = async (data: any, filename: string) => {
-    const csvContent = convertToCSV(data);
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${filename}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-    toast({
-      title: "Export Complete",
-      description: `Results exported as ${filename}.csv`,
-    });
+    try {
+      console.log('Exporting to Excel:', filename, data);
+      const csvContent = convertToCSV(data);
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${filename.replace(/[^a-z0-9]/gi, '_')}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Export Complete",
+        description: `Results exported as ${filename}.csv`,
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to export data. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const exportToPNG = async (filename: string) => {
+    try {
+      console.log('PNG export requested for:', filename);
+      // For now, we'll show a message that this feature is coming soon
+      toast({
+        title: "PNG Export",
+        description: "Chart export as PNG is coming soon! Use Excel export for now.",
+      });
+    } catch (error) {
+      console.error('PNG export error:', error);
+      toast({
+        title: "PNG Export Failed",
+        description: "Failed to export chart. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const convertToCSV = (data: any) => {
     if (typeof data === 'string') {
       return data;
+    }
+    if (Array.isArray(data)) {
+      return data.map(item => JSON.stringify(item)).join('\n');
     }
     return JSON.stringify(data, null, 2);
   };
@@ -72,21 +114,24 @@ export const Functions: React.FC = () => {
       name: 'Data Cleansing',
       description: 'Remove duplicates, handle missing values, and standardize formats',
       category: 'ETL',
-      status: 'active'
+      status: 'active',
+      details: 'Analyzes your uploaded data for quality issues including duplicates, missing values, inconsistent formats, and outliers. Provides specific recommendations with counts and percentages.'
     },
     {
       id: 'data-transformation',
       name: 'Data Transformation',
       description: 'Apply business rules and transform data structures',
       category: 'ETL',
-      status: 'active'
+      status: 'active',
+      details: 'Suggests data transformations to improve structure and usability. Includes normalization opportunities, data type conversions, and business rule applications.'
     },
     {
       id: 'data-validation',
       name: 'Data Validation',
       description: 'Validate data quality and integrity',
       category: 'Quality',
-      status: 'active'
+      status: 'active',
+      details: 'Validates data integrity, checks for business rule violations, and assesses overall data quality with validation scores and specific issues.'
     }
   ];
 
@@ -96,21 +141,24 @@ export const Functions: React.FC = () => {
       name: 'Statistical Analysis',
       description: 'Generate descriptive statistics and distributions',
       category: 'Analytics',
-      status: 'active'
+      status: 'active',
+      details: 'Performs comprehensive statistical analysis including descriptive statistics, distributions, correlations, and significance tests with numerical results and interpretations.'
     },
     {
       id: 'correlation-analysis',
       name: 'Correlation Analysis',
       description: 'Identify relationships between variables',
       category: 'Analytics',
-      status: 'active'
+      status: 'active',
+      details: 'Analyzes correlations between variables, identifies strong relationships, and provides insights about dependencies in your data.'
     },
     {
       id: 'outlier-detection',
       name: 'Outlier Detection',
       description: 'Detect anomalies and outliers in data',
       category: 'Analytics',
-      status: 'beta'
+      status: 'beta',
+      details: 'Detects outliers and anomalies using statistical methods. Identifies specific records and explains why they are considered outliers.'
     }
   ];
 
@@ -120,21 +168,24 @@ export const Functions: React.FC = () => {
       name: 'Schedule ETL Jobs',
       description: 'Set up automated data processing pipelines',
       category: 'Automation',
-      status: 'active'
+      status: 'active',
+      details: 'Suggests useful ETL job schedules based on data characteristics to enhance data quality and provide value with specific job types and frequencies.'
     },
     {
       id: 'alert-system',
       name: 'Alert System',
       description: 'Configure alerts for data quality issues',
       category: 'Automation',
-      status: 'active'
+      status: 'active',
+      details: 'Recommends alert configurations for data quality monitoring based on observed data patterns, including thresholds and trigger conditions.'
     },
     {
       id: 'backup-restore',
       name: 'Backup & Restore',
       description: 'Automated backup and restore procedures',
       category: 'Automation',
-      status: 'maintenance'
+      status: 'maintenance',
+      details: 'Suggests backup and restore strategies appropriate for data type and volume, including best practices and scheduling recommendations.'
     }
   ];
 
@@ -148,14 +199,17 @@ export const Functions: React.FC = () => {
       return;
     }
 
+    console.log('Executing function:', functionId, 'with', files.length, 'files');
     setExecutingFunction(functionId);
     setSelectedFunction(functionId);
     
     try {
       const fileContext = files.map(file => {
         const preview = file.preview?.slice(0, 10).map(row => row.join(',')).join('\n') || '';
-        return `File: ${file.name}\nType: ${file.type}\nSize: ${file.size} bytes\nPreview:\n${preview}`;
+        return `File: ${file.name}\nType: ${file.type}\nSize: ${file.size} bytes\nColumns: ${file.preview?.[0]?.length || 0}\nRows: ${file.preview?.length || 0}\nPreview:\n${preview}`;
       }).join('\n\n');
+
+      console.log('File context prepared, length:', fileContext.length);
 
       let prompt = '';
       switch (functionId) {
@@ -192,20 +246,33 @@ export const Functions: React.FC = () => {
 
       const response = await callGeminiAPI(prompt, fileContext);
       
+      const functionName = etlFunctions.concat(analyticsFunctions, automationFunctions).find(f => f.id === functionId)?.name || 'Function Results';
+      
       setFunctionResult({
-        title: etlFunctions.concat(analyticsFunctions, automationFunctions).find(f => f.id === functionId)?.name || 'Function Results',
-        summary: `Analysis completed for ${files.length} file(s)`,
+        title: functionName,
+        summary: `Analysis completed for ${files.length} file(s) with ${files.reduce((total, file) => total + (file.preview?.length || 0), 0)} total rows`,
         details: response,
         timestamp: new Date().toISOString(),
-        functionId: functionId
+        functionId: functionId,
+        exportable: true
       });
 
+      console.log('Function execution completed successfully');
       toast({
         title: "Function Executed",
-        description: `${etlFunctions.concat(analyticsFunctions, automationFunctions).find(f => f.id === functionId)?.name} completed successfully using your uploaded data.`,
+        description: `${functionName} completed successfully using your uploaded data.`,
       });
     } catch (error) {
       console.error('Function execution error:', error);
+      setFunctionResult({
+        title: 'Execution Error',
+        summary: 'Function execution failed',
+        details: error.message || 'Unknown error occurred',
+        timestamp: new Date().toISOString(),
+        functionId: functionId,
+        exportable: false,
+        error: true
+      });
       toast({
         title: "Execution Failed",
         description: error.message || "Failed to execute function. Please check your API key and try again.",
@@ -223,6 +290,13 @@ export const Functions: React.FC = () => {
       case 'maintenance': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
     }
+  };
+
+  const allFunctions = [...etlFunctions, ...analyticsFunctions, ...automationFunctions];
+
+  const getSelectedFunctionDetails = () => {
+    if (!selectedFunction) return null;
+    return allFunctions.find(f => f.id === selectedFunction);
   };
 
   const FunctionCard = ({ func }: { func: any }) => (
@@ -260,12 +334,26 @@ export const Functions: React.FC = () => {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => setSelectedFunction(func.id)}
+          onClick={() => {
+            setSelectedFunction(func.id);
+            setShowFunctionDetails(true);
+            console.log('View button clicked for function:', func.id);
+          }}
           className="text-xs"
         >
           <Eye className="w-3 h-3" />
         </Button>
-        <Button variant="outline" size="sm" className="text-xs">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="text-xs"
+          onClick={() => {
+            toast({
+              title: "Settings",
+              description: "Function settings coming soon!",
+            });
+          }}
+        >
           <Settings className="w-3 h-3" />
         </Button>
       </div>
@@ -285,45 +373,101 @@ export const Functions: React.FC = () => {
       );
     }
 
+    if (showFunctionDetails && selectedFunction) {
+      const funcDetails = getSelectedFunctionDetails();
+      if (funcDetails) {
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{funcDetails.name}</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Function Details</p>
+              </div>
+              <Button 
+                onClick={() => setShowFunctionDetails(false)}
+                size="sm"
+                variant="outline"
+              >
+                Close
+              </Button>
+            </div>
+
+            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+              <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Description</h5>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{funcDetails.details}</p>
+              
+              <div className="flex items-center gap-2 mb-3">
+                <Badge className={getStatusColor(funcDetails.status)}>{funcDetails.status}</Badge>
+                <Badge variant="outline">{funcDetails.category}</Badge>
+              </div>
+
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => executeFunction(funcDetails.id)}
+                  disabled={executingFunction === funcDetails.id || funcDetails.status === 'maintenance' || files.length === 0}
+                  size="sm"
+                  className="flex items-center gap-1"
+                >
+                  <Play className="w-3 h-3" />
+                  Execute Now
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+    }
+
     if (functionResult) {
       return (
         <div className="space-y-4">
           <div className="flex items-center justify-between border-b pb-3">
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{functionResult.title}</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{functionResult.summary}</p>
+            <div className="flex items-center gap-2">
+              {functionResult.error ? (
+                <AlertCircle className="w-5 h-5 text-red-500" />
+              ) : (
+                <CheckCircle className="w-5 h-5 text-green-500" />
+              )}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{functionResult.title}</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{functionResult.summary}</p>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => exportToExcel(functionResult.details, functionResult.title)}
-                size="sm"
-                variant="outline"
-                className="flex items-center gap-1"
-              >
-                <Download className="w-3 h-3" />
-                Excel
-              </Button>
-              <Button 
-                onClick={() => toast({ title: "PNG Export", description: "Chart export feature coming soon!" })}
-                size="sm"
-                variant="outline"
-                className="flex items-center gap-1"
-              >
-                <ImageIcon className="w-3 h-3" />
-                PNG
-              </Button>
-            </div>
+            {functionResult.exportable && !functionResult.error && (
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => exportToExcel(functionResult.details, functionResult.title)}
+                  size="sm"
+                  variant="outline"
+                  className="flex items-center gap-1"
+                >
+                  <Download className="w-3 h-3" />
+                  Excel
+                </Button>
+                <Button 
+                  onClick={() => exportToPNG(functionResult.title)}
+                  size="sm"
+                  variant="outline"
+                  className="flex items-center gap-1"
+                >
+                  <ImageIcon className="w-3 h-3" />
+                  PNG
+                </Button>
+              </div>
+            )}
           </div>
 
-          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-            <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Analysis Results</h5>
+          <div className={`p-4 rounded-lg ${functionResult.error ? 'bg-red-50 dark:bg-red-900/20' : 'bg-gray-50 dark:bg-gray-800'}`}>
+            <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-3">
+              {functionResult.error ? 'Error Details' : 'Analysis Results'}
+            </h5>
             <div className="prose prose-sm dark:prose-invert max-w-none">
               <pre className="whitespace-pre-wrap text-sm">{functionResult.details}</pre>
             </div>
           </div>
 
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            Executed at: {new Date(functionResult.timestamp).toLocaleString()}
+            {functionResult.error ? 'Failed' : 'Executed'} at: {new Date(functionResult.timestamp).toLocaleString()}
           </div>
         </div>
       );
@@ -335,7 +479,7 @@ export const Functions: React.FC = () => {
         <p className="text-center">
           {files.length === 0 
             ? 'Upload data files and execute functions to see results here'
-            : 'Execute a function to see results and analysis here'
+            : 'Execute a function or click the view icon to see details here'
           }
         </p>
       </div>
