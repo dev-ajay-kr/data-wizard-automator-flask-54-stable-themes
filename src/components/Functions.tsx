@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Play, Eye, Settings, BookOpen, Search, Key, AlertCircle, Home, Edit } from 'lucide-react';
+import { Play, Eye, Settings, BookOpen, Search, AlertCircle, Home } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { FunctionCard } from './functions/FunctionCard';
@@ -12,8 +13,11 @@ import { PreviewPanel } from './functions/PreviewPanel';
 import { DocumentationTab } from './functions/DocumentationTab';
 import { etlFunctions } from './functions/data';
 import { FunctionItem, FunctionResult } from './functions/types';
-import { callGeminiAPI, exportToExcel, exportChartAsPNG, exportToText, isGeminiApiAvailable, processFileDataForAnalysis } from './functions/utils';
+import { callGeminiAPI, isGeminiApiAvailable, processFileDataForAnalysis } from './functions/utils';
+import { exportToWord, exportToPNG, exportToCSV, exportToText, safeFallback } from '@/utils/advancedExportUtils';
 import { useFiles } from '@/contexts/FileContext';
+import { ApiKeyManager } from '@/components/ApiKeyManager';
+import { ResponseFormatter } from '@/components/ResponseFormatter';
 
 export const Functions: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,36 +25,15 @@ export const Functions: React.FC = () => {
   const [showFunctionDetails, setShowFunctionDetails] = useState(false);
   const [functionResult, setFunctionResult] = useState<FunctionResult | null>(null);
   const [executingFunction, setExecutingFunction] = useState<string | null>(null);
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('gemini_api_key') || '');
-  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
-  const [editingApiKey, setEditingApiKey] = useState(false);
   const { toast } = useToast();
   const { files } = useFiles();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const hasApiKey = isGeminiApiAvailable();
-    setShowApiKeyInput(!hasApiKey);
-  }, []);
-
-  const handleApiKeySubmit = () => {
-    if (apiKey.trim()) {
-      localStorage.setItem('gemini_api_key', apiKey.trim());
-      setShowApiKeyInput(false);
-      setEditingApiKey(false);
-      toast({
-        title: "🔑 **API Key Saved**",
-        description: "Gemini API key has been saved successfully.",
-      });
-    }
-  };
-
   const handleExecuteFunction = async (functionId: string) => {
     if (!isGeminiApiAvailable()) {
-      setShowApiKeyInput(true);
       toast({
         title: "🔑 **API Key Required**",
-        description: "Please enter your Gemini API key to execute functions.",
+        description: "Please configure your Gemini API key in settings.",
         variant: "destructive"
       });
       return;
@@ -129,14 +112,6 @@ export const Functions: React.FC = () => {
     setSelectedFunction(null);
   };
 
-  const handleExportToExcel = (data: any, title: string) => {
-    exportToExcel(data, title);
-  };
-
-  const handleExportToPNG = (title: string) => {
-    exportChartAsPNG('function-result-chart', title);
-  };
-
   const filteredFunctions = etlFunctions.filter(func =>
     func.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     func.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -167,56 +142,9 @@ export const Functions: React.FC = () => {
       </div>
 
       {/* API Key Management */}
-      <Card className="p-4 mb-6 border-blue-200 bg-blue-50 dark:bg-blue-900/20">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Key className="w-5 h-5 text-blue-600" />
-            <h3 className="font-medium text-blue-800 dark:text-blue-200">**Gemini API Key**</h3>
-            {apiKey && !editingApiKey && (
-              <Badge variant="outline" className="text-green-600 border-green-600">
-                Configured ({apiKey.substring(0, 8)}...)
-              </Badge>
-            )}
-          </div>
-          {apiKey && !editingApiKey && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setEditingApiKey(true)}
-              className="flex items-center gap-2"
-            >
-              <Edit className="w-4 h-4" />
-              Edit Key
-            </Button>
-          )}
-        </div>
-        
-        {(showApiKeyInput || editingApiKey) && (
-          <div className="mt-3">
-            <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
-              Functions require a Gemini API key for AI-powered analysis. Get your free key from Google AI Studio.
-            </p>
-            <div className="flex gap-2">
-              <Input
-                type="password"
-                placeholder="Enter your Gemini API key..."
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                className="flex-1"
-              />
-              <Button onClick={handleApiKeySubmit}>Save Key</Button>
-              {editingApiKey && (
-                <Button 
-                  variant="outline" 
-                  onClick={() => setEditingApiKey(false)}
-                >
-                  Cancel
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
-      </Card>
+      <div className="mb-6">
+        <ApiKeyManager />
+      </div>
 
       {/* Status Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -298,18 +226,78 @@ export const Functions: React.FC = () => {
             {/* Preview Panel */}
             <div>
               <Card className="p-6 min-h-[400px]">
-                <PreviewPanel
-                  executingFunction={executingFunction}
-                  showFunctionDetails={showFunctionDetails}
-                  selectedFunction={selectedFunction}
-                  functionResult={functionResult}
-                  functionDetails={functionDetails}
-                  filesLength={files.length}
-                  onCloseFunctionDetails={closeFunctionDetails}
-                  onExecuteFunction={handleExecuteFunction}
-                  onExportToExcel={handleExportToExcel}
-                  onExportToPNG={handleExportToPNG}
-                />
+                {functionResult && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">{functionResult.title}</h3>
+                      <Badge variant={functionResult.error ? "destructive" : "default"}>
+                        {functionResult.error ? "Failed" : "Success"}
+                      </Badge>
+                    </div>
+                    
+                    <div className="text-sm text-gray-500">
+                      Executed at: {safeFallback(new Date(parseInt(functionResult.timestamp)), 'date')}
+                    </div>
+                    
+                    <div className="border-t pt-4">
+                      <ResponseFormatter 
+                        content={functionResult.details}
+                        enableExports={functionResult.exportable && !functionResult.error}
+                        title={functionResult.title}
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                {showFunctionDetails && functionDetails && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">{functionDetails.name}</h3>
+                      <Button onClick={closeFunctionDetails} variant="outline" size="sm">
+                        Close
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">Category</Label>
+                        <Badge variant="outline" className="ml-2">{functionDetails.category}</Badge>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">Description</Label>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
+                          {functionDetails.description}
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">Details</Label>
+                        <div className="mt-1">
+                          <ResponseFormatter content={functionDetails.details} />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      onClick={() => handleExecuteFunction(functionDetails.id)}
+                      disabled={files.length === 0}
+                      className="w-full"
+                    >
+                      <Play className="w-4 h-4 mr-2" />
+                      Execute Function
+                    </Button>
+                  </div>
+                )}
+                
+                {!functionResult && !showFunctionDetails && (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    <div className="text-center">
+                      <Eye className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p>Select a function to view details or execute</p>
+                    </div>
+                  </div>
+                )}
               </Card>
             </div>
           </div>

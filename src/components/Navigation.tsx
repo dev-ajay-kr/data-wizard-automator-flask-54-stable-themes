@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, MessageCircle, Upload, Database, Settings, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/ThemeContext';
+import { ApiKeyManager } from '@/components/ApiKeyManager';
 import { cn } from '@/lib/utils';
 
 const navigationItems = [
@@ -16,6 +17,7 @@ const navigationItems = [
 
 export const Navigation: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { darkMode, toggleDarkMode } = useTheme();
 
   const isActive = (path: string) => {
@@ -26,6 +28,15 @@ export const Navigation: React.FC = () => {
       return location.pathname === pathname && location.search.includes(search);
     }
     return location.pathname === path;
+  };
+
+  const handleNavigation = (path: string) => {
+    // Ensure chat navigation works from any screen
+    if (path === '/chat' || path.startsWith('/chat')) {
+      navigate(path);
+    } else {
+      navigate(path);
+    }
   };
 
   return (
@@ -49,9 +60,9 @@ export const Navigation: React.FC = () => {
               const active = isActive(item.path);
               
               return (
-                <Link
+                <button
                   key={item.path}
-                  to={item.path}
+                  onClick={() => handleNavigation(item.path)}
                   className={cn(
                     "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 relative",
                     "hover:bg-gray-100 dark:hover:bg-gray-700 hover-scale",
@@ -65,23 +76,26 @@ export const Navigation: React.FC = () => {
                   {active && (
                     <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-blue-600 dark:bg-blue-400 animate-scale-in" />
                   )}
-                </Link>
+                </button>
               );
             })}
           </div>
 
-          {/* Theme Toggle */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={toggleDarkMode}
-            className="flex items-center gap-2 hover-scale"
-          >
-            {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            <span className="hidden sm:inline">
-              {darkMode ? 'Light' : 'Dark'}
-            </span>
-          </Button>
+          {/* API Key Status & Theme Toggle */}
+          <div className="flex items-center gap-3">
+            <ApiKeyManager compact={true} showTitle={false} className="hidden sm:flex" />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleDarkMode}
+              className="flex items-center gap-2 hover-scale"
+            >
+              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              <span className="hidden sm:inline">
+                {darkMode ? 'Light' : 'Dark'}
+              </span>
+            </Button>
+          </div>
         </div>
 
         {/* Mobile Navigation */}
@@ -92,9 +106,9 @@ export const Navigation: React.FC = () => {
               const active = isActive(item.path);
               
               return (
-                <Link
+                <button
                   key={item.path}
-                  to={item.path}
+                  onClick={() => handleNavigation(item.path)}
                   className={cn(
                     "flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 min-w-max",
                     "hover:bg-gray-100 dark:hover:bg-gray-700",
@@ -105,9 +119,13 @@ export const Navigation: React.FC = () => {
                 >
                   <Icon className="w-4 h-4" />
                   <span>{item.label}</span>
-                </Link>
+                </button>
               );
             })}
+          </div>
+          {/* Mobile API Key Status */}
+          <div className="mt-3 sm:hidden">
+            <ApiKeyManager compact={true} showTitle={false} />
           </div>
         </div>
       </div>

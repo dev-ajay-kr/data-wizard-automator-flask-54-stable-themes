@@ -1,159 +1,167 @@
 
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Link } from 'react-router-dom';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Upload, Database, Settings, BarChart3, Brain, GitBranch, Zap, TrendingUp, Shield } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
+import { MessageCircle, Upload, Database, Settings, Zap, BarChart3, Users, Shield, ArrowRight } from 'lucide-react';
+import { useFiles } from '@/contexts/FileContext';
+import { SettingsPanel } from '@/components/SettingsPanel';
+import { ApiKeyManager } from '@/components/ApiKeyManager';
 
 const Home = () => {
-  const navigate = useNavigate();
+  const { files } = useFiles();
 
   const features = [
     {
       icon: MessageCircle,
-      title: 'Chat with Gemini',
-      description: 'Get AI-powered insights about your data and ETL processes with advanced formatting support.',
-      action: () => navigate('/chat'),
-      color: 'bg-blue-500',
-      delay: 'animation-delay-100'
+      title: 'AI-Powered Chat',
+      description: 'Interactive conversations with Gemini AI for data analysis and insights',
+      link: '/chat',
+      color: 'bg-blue-500'
     },
     {
       icon: Upload,
-      title: 'CSV Upload & Analysis',
-      description: 'Upload CSV files and analyze them with built-in chat functionality.',
-      action: () => navigate('/chat?tab=csv-upload'),
-      color: 'bg-green-500',
-      delay: 'animation-delay-200'
-    },
-    {
-      icon: BarChart3,
-      title: 'Dashboard Suggestions',
-      description: 'Get intelligent dashboard recommendations based on your data structure.',
-      action: () => navigate('/chat?tab=datasource-utilities'),
-      color: 'bg-purple-500',
-      delay: 'animation-delay-300'
+      title: 'CSV Data Upload',
+      description: 'Upload and analyze CSV files with intelligent processing',
+      link: '/chat?tab=csv-upload',
+      color: 'bg-green-500'
     },
     {
       icon: Database,
-      title: 'Datasource Utilities',
-      description: 'Analyze database schemas, suggest utilities, and visualize relationships.',
-      action: () => navigate('/chat?tab=datasource-utilities'),
-      color: 'bg-orange-500',
-      delay: 'animation-delay-400'
+      title: 'Data Source Utilities',
+      description: 'Connect and manage various data sources and APIs',
+      link: '/chat?tab=datasource-utilities',
+      color: 'bg-purple-500'
     },
     {
-      icon: Brain,
-      title: 'Smart Functions',
-      description: 'Execute data transformation functions with real-time preview.',
-      action: () => navigate('/chat?tab=functions'),
-      color: 'bg-indigo-500',
-      delay: 'animation-delay-500'
-    },
-    {
-      icon: GitBranch,
-      title: 'ETL Job Scheduling',
-      description: 'Schedule and manage ETL jobs to enhance data quality.',
-      action: () => navigate('/chat?tab=functions'),
-      color: 'bg-teal-500',
-      delay: 'animation-delay-600'
+      icon: Settings,
+      title: 'ETL Functions',
+      description: 'Execute advanced data transformation and analysis functions',
+      link: '/chat?tab=functions',
+      color: 'bg-orange-500'
     }
   ];
 
   const stats = [
-    { icon: Zap, label: 'Fast Processing', value: '10x Faster', color: 'text-yellow-600' },
-    { icon: TrendingUp, label: 'Data Accuracy', value: '99.9%', color: 'text-green-600' },
-    { icon: Shield, label: 'Secure', value: 'Enterprise', color: 'text-blue-600' },
+    { label: 'Data Files Loaded', value: files.length, icon: Database },
+    { label: 'Functions Available', value: '12+', icon: Zap },
+    { label: 'Export Formats', value: '4', icon: BarChart3 },
+    { label: 'Active Users', value: '1K+', icon: Users }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-      <div className="max-w-7xl mx-auto p-6">
-        {/* Hero Section */}
-        <div className="text-center mb-16 animate-fade-in">
-          <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            ETL Warehousing Automation
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
-            Transform your data workflow with AI-powered insights, automated analysis, and intelligent recommendations.
-            Upload files, chat with your data, and generate actionable business intelligence.
-          </p>
-          
-          {/* Stats */}
-          <div className="flex justify-center gap-8 mt-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center animate-scale-in hover-scale" style={{ animationDelay: `${index * 100}ms` }}>
-                <stat.icon className={`w-8 h-8 mx-auto mb-2 ${stat.color}`} />
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-          {features.map((feature, index) => (
-            <Card 
-              key={index} 
-              className={`hover:shadow-xl transition-all duration-300 cursor-pointer group animate-fade-in hover-scale border-0 shadow-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm ${feature.delay}`}
-              onClick={feature.action}
-            >
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className={`p-3 rounded-xl ${feature.color} text-white group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                    <feature.icon className="w-6 h-6" />
-                  </div>
-                  <CardTitle className="text-lg group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {feature.title}
-                  </CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-gray-600 dark:text-gray-300 mb-4">
-                  {feature.description}
-                </CardDescription>
-                <Button className="w-full group-hover:bg-blue-600 transition-colors" variant="outline">
-                  Get Started
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Quick Start Section */}
-        <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl animate-slide-in-right">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">Quick Start Guide</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                step: '1',
-                title: 'Upload Your Data',
-                description: 'Upload CSV files or connect to your data sources',
-                color: 'bg-blue-500'
-              },
-              {
-                step: '2', 
-                title: 'Chat & Analyze',
-                description: 'Use natural language to explore and understand your data',
-                color: 'bg-green-500'
-              },
-              {
-                step: '3',
-                title: 'Generate Insights',
-                description: 'Get dashboards, reports, and actionable recommendations',
-                color: 'bg-purple-500'
-              }
-            ].map((item, index) => (
-              <div key={index} className="text-center animate-scale-in hover-scale" style={{ animationDelay: `${index * 200}ms` }}>
-                <div className={`${item.color} rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-lg`}>
-                  <span className="text-white font-bold text-xl">{item.step}</span>
-                </div>
-                <h3 className="font-semibold mb-3 text-lg">{item.title}</h3>
-                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                  {item.description}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
+          {/* Header with Settings */}
+          <div className="flex justify-between items-start mb-8">
+            <div className="flex-1">
+              <div className="text-center">
+                <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 animate-fade-in">
+                  Welcome to{' '}
+                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    ETL Hub
+                  </span>
+                </h1>
+                <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+                  Your comprehensive platform for data extraction, transformation, and loading with AI-powered insights
                 </p>
               </div>
-            ))}
+            </div>
+            
+            {/* Settings Panel in Top Right */}
+            <div className="flex items-center gap-3">
+              <SettingsPanel />
+            </div>
+          </div>
+
+          {/* API Key Status */}
+          <div className="max-w-4xl mx-auto mb-12">
+            <ApiKeyManager />
+          </div>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+            {stats.map((stat, index) => {
+              const Icon = stat.icon;
+              return (
+                <Card key={index} className="p-6 text-center hover-scale hover:shadow-xl transition-all duration-300">
+                  <Icon className="w-8 h-8 mx-auto mb-3 text-blue-600 dark:text-blue-400" />
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                    {stat.value}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    {stat.label}
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Main Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <Card key={index} className="group hover-scale hover:shadow-2xl transition-all duration-300 overflow-hidden">
+                  <div className="p-8">
+                    <div className="flex items-center mb-6">
+                      <div className={`p-3 rounded-xl ${feature.color} text-white mr-4 group-hover:scale-110 transition-transform duration-300`}>
+                        <Icon className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                        {feature.title}
+                      </h3>
+                    </div>
+                    
+                    <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+                      {feature.description}
+                    </p>
+                    
+                    <Link to={feature.link}>
+                      <Button className="group/btn w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0">
+                        Get Started
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform duration-200" />
+                      </Button>
+                    </Link>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Quick Actions */}
+          <Card className="p-8 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Data?</h2>
+              <p className="text-blue-100 mb-6 text-lg">
+                Start by uploading your data files or begin a conversation with our AI assistant
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link to="/chat?tab=csv-upload">
+                  <Button size="lg" variant="secondary" className="w-full sm:w-auto">
+                    <Upload className="w-5 h-5 mr-2" />
+                    Upload Data
+                  </Button>
+                </Link>
+                <Link to="/chat">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto text-white border-white hover:bg-white hover:text-blue-600">
+                    <MessageCircle className="w-5 h-5 mr-2" />
+                    Start Chat
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </Card>
+
+          {/* Security Notice */}
+          <div className="mt-12 text-center">
+            <div className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-full">
+              <Shield className="w-4 h-4" />
+              Your data is processed securely and never stored permanently
+            </div>
           </div>
         </div>
       </div>
