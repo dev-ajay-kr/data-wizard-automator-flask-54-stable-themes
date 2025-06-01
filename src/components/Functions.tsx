@@ -76,7 +76,7 @@ export const Functions: React.FC = () => {
         title: func.name,
         summary: `Successfully executed ${func.name}`,
         details: response,
-        timestamp: Date.now(),
+        timestamp: Date.now().toString(),
         exportable: true
       };
 
@@ -94,7 +94,7 @@ export const Functions: React.FC = () => {
         title: func.name,
         summary: 'Function execution failed',
         details: error.message || 'Unknown error occurred',
-        timestamp: Date.now(),
+        timestamp: Date.now().toString(),
         error: true,
         exportable: false
       };
@@ -243,8 +243,6 @@ export const Functions: React.FC = () => {
                     func={func}
                     onExecute={handleExecuteFunction}
                     onView={handleViewFunction}
-                    isExecuting={executingFunction === func.id}
-                    filesAvailable={files.length > 0}
                     executingFunction={executingFunction}
                     filesLength={files.length}
                     onSettings={() => {}}
