@@ -4,7 +4,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, MessageCircle, Upload, Database, Settings, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/ThemeContext';
-import { ApiKeyManager } from '@/components/ApiKeyManager';
 import { cn } from '@/lib/utils';
 
 const navigationItems = [
@@ -31,12 +30,7 @@ export const Navigation: React.FC = () => {
   };
 
   const handleNavigation = (path: string) => {
-    // Ensure chat navigation works from any screen
-    if (path === '/chat' || path.startsWith('/chat')) {
-      navigate(path);
-    } else {
-      navigate(path);
-    }
+    navigate(path);
   };
 
   return (
@@ -49,7 +43,7 @@ export const Navigation: React.FC = () => {
               to="/" 
               className="text-2xl font-bold text-blue-600 dark:text-blue-400 hover-scale transition-transform duration-200 hover:scale-105"
             >
-              🔧 **ETL Hub**
+              🔧 <strong>ETL Hub</strong>
             </Link>
           </div>
 
@@ -81,9 +75,8 @@ export const Navigation: React.FC = () => {
             })}
           </div>
 
-          {/* API Key Status & Theme Toggle */}
+          {/* Theme Toggle Only */}
           <div className="flex items-center gap-3">
-            <ApiKeyManager compact={true} showTitle={false} className="hidden sm:flex" />
             <Button
               variant="outline"
               size="sm"
@@ -122,10 +115,6 @@ export const Navigation: React.FC = () => {
                 </button>
               );
             })}
-          </div>
-          {/* Mobile API Key Status */}
-          <div className="mt-3 sm:hidden">
-            <ApiKeyManager compact={true} showTitle={false} />
           </div>
         </div>
       </div>

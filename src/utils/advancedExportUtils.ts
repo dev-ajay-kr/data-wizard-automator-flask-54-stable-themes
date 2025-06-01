@@ -33,47 +33,80 @@ export const safeFallback = (value: any, type: 'date' | 'number' | 'text' = 'tex
   return String(value);
 };
 
-// Convert HTML to Word-compatible format
-const htmlToWordXml = (html: string): string => {
-  // Basic HTML to Word XML conversion
-  let wordXml = html
-    .replace(/<h1[^>]*>(.*?)<\/h1>/gi, '<w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t>$1</w:t></w:r></w:p>')
-    .replace(/<h2[^>]*>(.*?)<\/h2>/gi, '<w:p><w:pPr><w:pStyle w:val="Heading2"/></w:pPr><w:r><w:t>$1</w:t></w:r></w:p>')
-    .replace(/<h3[^>]*>(.*?)<\/h3>/gi, '<w:p><w:pPr><w:pStyle w:val="Heading3"/></w:pPr><w:r><w:t>$1</w:t></w:r></w:p>')
-    .replace(/<strong[^>]*>(.*?)<\/strong>/gi, '<w:r><w:rPr><w:b/></w:rPr><w:t>$1</w:t></w:r>')
-    .replace(/<em[^>]*>(.*?)<\/em>/gi, '<w:r><w:rPr><w:i/></w:rPr><w:t>$1</w:t></w:r>')
-    .replace(/<p[^>]*>(.*?)<\/p>/gi, '<w:p><w:r><w:t>$1</w:t></w:r></w:p>')
-    .replace(/<code[^>]*>(.*?)<\/code>/gi, '<w:r><w:rPr><w:rFonts w:ascii="Consolas"/><w:shd w:fill="F0F0F0"/></w:rPr><w:t>$1</w:t></w:r>')
-    .replace(/<ul[^>]*>(.*?)<\/ul>/gis, '$1')
-    .replace(/<li[^>]*>(.*?)<\/li>/gi, '<w:p><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr></w:pPr><w:r><w:t>$1</w:t></w:r></w:p>');
-  
-  // Remove remaining HTML tags
-  wordXml = wordXml.replace(/<[^>]*>/g, '');
-  
-  return wordXml;
+// Enhanced markdown to HTML conversion
+const markdownToHtml = (markdown: string): string => {
+  let html = markdown
+    // Headers
+    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+    
+    // Bold and italic
+    .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    
+    // Code
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    
+    // Lists
+    .replace(/^\s*[\*\-\+]\s+(.*)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+    
+    // Line breaks
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br>');
+
+  // Wrap in paragraphs
+  if (!html.startsWith('<')) {
+    html = '<p>' + html + '</p>';
+  }
+
+  return html;
 };
 
+// Enhanced Word export with proper RTF formatting
 export const exportToWord = async (content: string, filename: string) => {
   try {
     console.log('Exporting to Word:', filename);
     
-    // Convert markdown/HTML to Word XML
-    const wordContent = htmlToWordXml(content);
+    // Convert markdown to HTML first
+    const htmlContent = markdownToHtml(content);
     
-    // Create a basic Word document structure
-    const wordDocument = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
-  <w:body>
-    ${wordContent}
-  </w:body>
-</w:document>`;
-    
-    // For now, export as RTF which most word processors can open
-    const rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}
-${content.replace(/\*\*(.*?)\*\*/g, '{\\b $1}')
-         .replace(/\*(.*?)\*/g, '{\\i $1}')
-         .replace(/`(.*?)`/g, '{\\f1 $1}')
-         .replace(/\n/g, '\\par ')}}`;
+    // Create RTF content with proper formatting
+    let rtfContent = `{\\rtf1\\ansi\\deff0
+{\\fonttbl {\\f0\\froman\\fcharset0 Times New Roman;}{\\f1\\fmodern\\fcharset0 Courier New;}}
+{\\colortbl;\\red0\\green0\\blue0;\\red0\\green0\\blue255;}
+\\f0\\fs24`;
+
+    // Process the HTML content for RTF
+    rtfContent += htmlContent
+      // Headers
+      .replace(/<h1>(.*?)<\/h1>/g, '\\par\\fs32\\b $1\\b0\\fs24\\par')
+      .replace(/<h2>(.*?)<\/h2>/g, '\\par\\fs28\\b $1\\b0\\fs24\\par')
+      .replace(/<h3>(.*?)<\/h3>/g, '\\par\\fs24\\b $1\\b0\\fs24\\par')
+      
+      // Bold and italic
+      .replace(/<strong>(.*?)<\/strong>/g, '\\b $1\\b0')
+      .replace(/<em>(.*?)<\/em>/g, '\\i $1\\i0')
+      
+      // Code
+      .replace(/<code>(.*?)<\/code>/g, '\\f1\\highlight2 $1\\f0\\highlight0')
+      
+      // Lists
+      .replace(/<ul>/g, '')
+      .replace(/<\/ul>/g, '')
+      .replace(/<li>(.*?)<\/li>/g, '\\par\\bullet\\tab $1')
+      
+      // Paragraphs and breaks
+      .replace(/<p>/g, '\\par')
+      .replace(/<\/p>/g, '')
+      .replace(/<br>/g, '\\par')
+      
+      // Remove remaining HTML tags
+      .replace(/<[^>]*>/g, '');
+
+    rtfContent += '}';
     
     const blob = new Blob([rtfContent], { type: 'application/rtf' });
     const url = window.URL.createObjectURL(blob);
@@ -86,40 +119,59 @@ ${content.replace(/\*\*(.*?)\*\*/g, '{\\b $1}')
     window.URL.revokeObjectURL(url);
     
     toast({
-      title: "📄 **Word Export Complete**",
-      description: `Document exported as **${filename}.rtf**`,
+      title: "📄 Word Export Complete",
+      description: `Document exported as ${filename}.rtf`,
     });
   } catch (error) {
     console.error('Word export error:', error);
     toast({
-      title: "❌ **Word Export Failed**",
+      title: "❌ Word Export Failed", 
       description: "Failed to export Word document. Please try again.",
       variant: "destructive"
     });
   }
 };
 
-export const exportToPNG = async (chartElementId: string, filename: string) => {
+// Enhanced PNG export with better capture settings
+export const exportToPNG = async (elementId: string, filename: string) => {
   try {
-    console.log('PNG export requested for chart:', chartElementId, filename);
+    console.log('PNG export requested for element:', elementId, filename);
     
-    const chartElement = document.getElementById(chartElementId);
-    if (!chartElement) {
-      throw new Error(`Chart element with ID "${chartElementId}" not found`);
+    const element = document.getElementById(elementId);
+    if (!element) {
+      throw new Error(`Element with ID "${elementId}" not found`);
     }
     
-    // Generate canvas from chart element with high resolution
-    const canvas = await html2canvas(chartElement, {
+    // Create a larger container to ensure nothing is cropped
+    const container = element.cloneNode(true) as HTMLElement;
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '1400px';
+    container.style.minHeight = '900px';
+    container.style.padding = '40px';
+    container.style.backgroundColor = '#ffffff';
+    container.style.zIndex = '-1';
+    
+    document.body.appendChild(container);
+    
+    // Generate high-quality canvas
+    const canvas = await html2canvas(container, {
       backgroundColor: '#ffffff',
-      scale: 3, // Higher resolution for better quality
-      width: 1200,
-      height: 800,
-      logging: false,
+      scale: 2,
+      width: 1400,
+      height: 900,
       useCORS: true,
-      allowTaint: true
+      allowTaint: true,
+      logging: false,
+      scrollX: 0,
+      scrollY: 0
     });
     
-    // Convert canvas to blob and download
+    // Clean up
+    document.body.removeChild(container);
+    
+    // Convert to blob and download
     canvas.toBlob((blob) => {
       if (blob) {
         const url = window.URL.createObjectURL(blob);
@@ -132,8 +184,8 @@ export const exportToPNG = async (chartElementId: string, filename: string) => {
         window.URL.revokeObjectURL(url);
         
         toast({
-          title: "🖼️ **Chart Export Complete**",
-          description: `Chart saved as **${filename}.png**`,
+          title: "🖼️ Chart Export Complete",
+          description: `Chart saved as ${filename}.png`,
         });
       }
     }, 'image/png');
@@ -141,7 +193,7 @@ export const exportToPNG = async (chartElementId: string, filename: string) => {
   } catch (error) {
     console.error('PNG export error:', error);
     toast({
-      title: "❌ **PNG Export Failed**",
+      title: "❌ PNG Export Failed",
       description: "Failed to export chart. Please try again.",
       variant: "destructive"
     });

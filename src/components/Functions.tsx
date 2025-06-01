@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Play, Eye, Settings, BookOpen, Search, AlertCircle, Home } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -14,9 +15,7 @@ import { DocumentationTab } from './functions/DocumentationTab';
 import { etlFunctions } from './functions/data';
 import { FunctionItem, FunctionResult } from './functions/types';
 import { callGeminiAPI, isGeminiApiAvailable, processFileDataForAnalysis } from './functions/utils';
-import { exportToWord, exportToPNG, exportToCSV, exportToText, safeFallback } from '@/utils/advancedExportUtils';
 import { useFiles } from '@/contexts/FileContext';
-import { ApiKeyManager } from '@/components/ApiKeyManager';
 import { ResponseFormatter } from '@/components/ResponseFormatter';
 
 export const Functions: React.FC = () => {
@@ -32,8 +31,8 @@ export const Functions: React.FC = () => {
   const handleExecuteFunction = async (functionId: string) => {
     if (!isGeminiApiAvailable()) {
       toast({
-        title: "🔑 **API Key Required**",
-        description: "Please configure your Gemini API key in settings.",
+        title: "🔑 API Key Required",
+        description: "Please configure your Gemini API key in Home settings.",
         variant: "destructive"
       });
       return;
@@ -41,7 +40,7 @@ export const Functions: React.FC = () => {
 
     if (files.length === 0) {
       toast({
-        title: "📁 **No Data Files**",
+        title: "📁 No Data Files",
         description: "Please upload data files first to execute functions.",
         variant: "destructive"
       });
@@ -70,8 +69,8 @@ export const Functions: React.FC = () => {
       setFunctionResult(result);
       
       toast({
-        title: "✅ **Function Executed**",
-        description: `**${func.name}** completed successfully.`,
+        title: "✅ Function Executed",
+        description: `${func.name} completed successfully.`,
       });
     } catch (error: any) {
       console.error('Function execution error:', error);
@@ -89,7 +88,7 @@ export const Functions: React.FC = () => {
       setFunctionResult(errorResult);
       
       toast({
-        title: "❌ **Execution Failed**",
+        title: "❌ Execution Failed",
         description: error.message || 'Function execution failed. Please try again.',
         variant: "destructive"
       });
@@ -127,7 +126,7 @@ export const Functions: React.FC = () => {
         <div>
           <h2 className="text-3xl font-bold text-blue-600 mb-2 flex items-center gap-2">
             <Settings className="w-8 h-8" />
-            **ETL Functions**
+            <strong>ETL Functions</strong>
           </h2>
           <p className="text-gray-600 dark:text-gray-400">Execute advanced data processing and analysis functions</p>
         </div>
@@ -141,29 +140,24 @@ export const Functions: React.FC = () => {
         </Button>
       </div>
 
-      {/* API Key Management */}
-      <div className="mb-6">
-        <ApiKeyManager />
-      </div>
-
       {/* Status Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card className="p-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="font-medium">**{etlFunctions.filter(f => f.status === 'active').length}** Active Functions</span>
+            <span className="font-medium"><strong>{etlFunctions.filter(f => f.status === 'active').length}</strong> Active Functions</span>
           </div>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-            <span className="font-medium">**{etlFunctions.filter(f => f.status === 'beta').length}** Beta Functions</span>
+            <span className="font-medium"><strong>{etlFunctions.filter(f => f.status === 'beta').length}</strong> Beta Functions</span>
           </div>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-            <span className="font-medium">**{files.length}** Data Files Loaded</span>
+            <span className="font-medium"><strong>{files.length}</strong> Data Files Loaded</span>
           </div>
         </Card>
       </div>
@@ -200,10 +194,10 @@ export const Functions: React.FC = () => {
                 <Card className="p-6 border-orange-200 bg-orange-50 dark:bg-orange-900/20">
                   <div className="flex items-center gap-2 mb-2">
                     <AlertCircle className="w-5 h-5 text-orange-600" />
-                    <h3 className="font-medium text-orange-800 dark:text-orange-200">**No Data Files**</h3>
+                    <h3 className="font-medium text-orange-800 dark:text-orange-200"><strong>No Data Files</strong></h3>
                   </div>
                   <p className="text-sm text-orange-700 dark:text-orange-300">
-                    Upload CSV files in the **CSV Upload** tab to execute functions with your data.
+                    Upload CSV files in the <strong>CSV Upload</strong> tab to execute functions with your data.
                   </p>
                 </Card>
               )}
@@ -236,7 +230,7 @@ export const Functions: React.FC = () => {
                     </div>
                     
                     <div className="text-sm text-gray-500">
-                      Executed at: {safeFallback(new Date(parseInt(functionResult.timestamp)), 'date')}
+                      Executed at: {new Date(parseInt(functionResult.timestamp)).toLocaleString()}
                     </div>
                     
                     <div className="border-t pt-4">
