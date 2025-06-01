@@ -6,14 +6,15 @@ export interface FunctionItem {
   category: string;
   status: 'active' | 'beta' | 'maintenance';
   details: string;
+  prompt: string;
 }
 
 export interface FunctionResult {
+  id: string;
   title: string;
   summary: string;
   details: string;
-  timestamp: string;
-  functionId: string;
+  timestamp: number;
   exportable: boolean;
   error?: boolean;
 }

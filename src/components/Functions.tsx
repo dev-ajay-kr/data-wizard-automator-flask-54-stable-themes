@@ -240,11 +240,14 @@ export const Functions: React.FC = () => {
                 {filteredFunctions.map((func) => (
                   <FunctionCard
                     key={func.id}
-                    function={func}
+                    func={func}
                     onExecute={handleExecuteFunction}
                     onView={handleViewFunction}
                     isExecuting={executingFunction === func.id}
                     filesAvailable={files.length > 0}
+                    executingFunction={executingFunction}
+                    filesLength={files.length}
+                    onSettings={() => {}}
                   />
                 ))}
               </div>
