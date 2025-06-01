@@ -50,7 +50,6 @@ export const ResponseFormatter: React.FC<ResponseFormatterProps> = ({
     if (chartId) {
       exportToPNG(chartId, title);
     } else if (contentRef.current) {
-      // Generate a unique ID for the content
       const tempId = `export-content-${Date.now()}`;
       contentRef.current.id = tempId;
       exportToPNG(tempId, title);
@@ -69,17 +68,14 @@ export const ResponseFormatter: React.FC<ResponseFormatterProps> = ({
 
   // Custom components for markdown rendering
   const components = {
-    // Handle bold text properly
     strong: ({ children }: { children: React.ReactNode }) => (
       <strong className="font-bold text-gray-900 dark:text-white">{children}</strong>
     ),
     
-    // Handle italic text properly
     em: ({ children }: { children: React.ReactNode }) => (
       <em className="italic text-gray-800 dark:text-gray-200">{children}</em>
     ),
     
-    // Handle headings with consistent styling
     h1: ({ children }: { children: React.ReactNode }) => (
       <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-4 mt-6 first:mt-0">{children}</h1>
     ),
@@ -93,7 +89,6 @@ export const ResponseFormatter: React.FC<ResponseFormatterProps> = ({
       <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2 mt-3 first:mt-0">{children}</h4>
     ),
     
-    // Handle code blocks with syntax highlighting
     code: ({ inline, className, children, ...props }: any) => {
       const match = /language-(\w+)/.exec(className || '');
       const language = match ? match[1] : '';
@@ -125,7 +120,6 @@ export const ResponseFormatter: React.FC<ResponseFormatterProps> = ({
       );
     },
     
-    // Handle lists with proper styling
     ul: ({ children }: { children: React.ReactNode }) => (
       <ul className="list-disc list-inside my-3 space-y-1 text-gray-700 dark:text-gray-300">{children}</ul>
     ),
@@ -136,19 +130,16 @@ export const ResponseFormatter: React.FC<ResponseFormatterProps> = ({
       <li className="text-gray-700 dark:text-gray-300">{children}</li>
     ),
     
-    // Handle paragraphs
     p: ({ children }: { children: React.ReactNode }) => (
       <p className="my-2 text-gray-700 dark:text-gray-300 leading-relaxed">{children}</p>
     ),
     
-    // Handle blockquotes
     blockquote: ({ children }: { children: React.ReactNode }) => (
       <blockquote className="border-l-4 border-blue-400 pl-4 my-4 bg-blue-50 dark:bg-blue-900/20 py-2 italic text-gray-700 dark:text-gray-300">
         {children}
       </blockquote>
     ),
     
-    // Handle tables
     table: ({ children }: { children: React.ReactNode }) => (
       <div className="overflow-x-auto my-4">
         <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-600">
@@ -167,7 +158,6 @@ export const ResponseFormatter: React.FC<ResponseFormatterProps> = ({
       </td>
     ),
     
-    // Handle links
     a: ({ href, children }: { href?: string; children: React.ReactNode }) => (
       <a 
         href={href} 
@@ -179,7 +169,6 @@ export const ResponseFormatter: React.FC<ResponseFormatterProps> = ({
       </a>
     ),
     
-    // Handle horizontal rules
     hr: () => (
       <hr className="my-6 border-gray-300 dark:border-gray-600" />
     )
@@ -251,17 +240,15 @@ export const ResponseFormatter: React.FC<ResponseFormatterProps> = ({
       {/* Content Display */}
       <div 
         ref={contentRef}
-        className="prose prose-sm max-w-none dark:prose-invert bg-white dark:bg-gray-900 p-4 rounded-lg border shadow-sm"
+        className="prose prose-sm max-w-none dark:prose-invert bg-white dark:bg-gray-900 p-6 rounded-xl border shadow-sm"
         style={{ 
           minHeight: '200px',
-          width: '100%',
-          padding: '24px'
+          width: '100%'
         }}
       >
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={components}
-          className="markdown-content"
         >
           {content}
         </ReactMarkdown>

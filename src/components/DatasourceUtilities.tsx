@@ -1,566 +1,302 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Database, BarChart, Calculator, Search, TrendingUp, Table, ChevronDown, ChevronRight, Eye, Download, Image as ImageIcon, AlertTriangle, CheckCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Database, FileText, Download, Upload, Settings, Search, Filter, RefreshCw, Home } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useFiles } from '@/contexts/FileContext';
-import { useGemini } from '@/hooks/useGemini';
 import { ResponseFormatter } from './ResponseFormatter';
-import { ChartVisualization } from './ChartVisualization';
 
 export const DatasourceUtilities: React.FC = () => {
-  const [analysisResults, setAnalysisResults] = useState<any>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [selectedUtility, setSelectedUtility] = useState<string | null>(null);
-  const [collapsedSections, setCollapsedSections] = useState<string[]>([]);
-  const [dashboardCharts, setDashboardCharts] = useState<any[]>([]);
-  const { toast } = useToast();
-  const { files, getParsedData } = useFiles();
-  const { callGemini, isLoading: geminiLoading } = useGemini();
+  const navigate = useNavigate();
+  const { files } = useFiles();
+  const [selectedFile, setSelectedFile] = useState<any>(null);
+  const [previewData, setPreviewData] = useState<any>(null);
 
-  const utilities = [
-    {
-      id: 'analyze-structure',
-      title: 'Analyze CSV Structure',
-      description: 'Analyze columns, data types, and relationships',
-      icon: Database,
-      color: 'bg-blue-500',
-      category: 'analysis'
-    },
-    {
-      id: 'calculated-columns',
-      title: 'Suggest Calculated Columns',
-      description: 'Identify potential derived metrics',
-      icon: Calculator,
-      color: 'bg-purple-500',
-      category: 'analysis'
-    },
-    {
-      id: 'analyze-all',
-      title: 'Analyze All CSV Files',
-      description: 'Comprehensive analysis of all uploaded data',
-      icon: Search,
-      color: 'bg-red-500',
-      category: 'analysis'
-    },
-    {
-      id: 'suggest-dashboards',
-      title: 'Suggest Dashboards',
-      description: 'Get recommendations for data visualization',
-      icon: BarChart,
-      color: 'bg-green-500',
-      category: 'visualization'
-    },
-    {
-      id: 'dashboard-preview',
-      title: 'Dashboard Preview',
-      description: 'Preview dashboards with actual data charts',
-      icon: BarChart,
-      color: 'bg-indigo-500',
-      category: 'visualization'
-    },
-    {
-      id: 'trends',
-      title: 'Identify Trends',
-      description: 'Discover patterns and anomalies in your data',
-      icon: TrendingUp,
-      color: 'bg-indigo-500',
-      category: 'visualization'
-    },
-    {
-      id: 'db-structure',
-      title: 'Get DB Structure',
-      description: 'Analyze database schema and relationships',
-      icon: Table,
-      color: 'bg-orange-500',
-      category: 'schema'
-    }
-  ];
-
-  const exportToExcel = async (data: any, filename: string) => {
-    try {
-      console.log('Exporting to Excel:', filename, data);
-      const csvContent = convertToCSV(data);
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${filename.replace(/[^a-z0-9]/gi, '_')}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      
-      toast({
-        title: "Export Complete",
-        description: `Results exported as ${filename}.csv`,
-      });
-    } catch (error) {
-      console.error('Export error:', error);
-      toast({
-        title: "Export Failed",
-        description: "Failed to export data. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const exportChartAsPNG = async (chartId: string, filename: string) => {
-    try {
-      console.log('PNG export requested for:', filename);
-      toast({
-        title: "PNG Export",
-        description: "Chart export as PNG is coming soon! Use Excel export for now.",
-      });
-    } catch (error) {
-      console.error('PNG export error:', error);
-      toast({
-        title: "PNG Export Failed",
-        description: "Failed to export chart. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const convertToCSV = (data: any) => {
-    if (typeof data === 'string') {
-      return data;
-    }
-    if (Array.isArray(data)) {
-      if (data.length === 0) return '';
-      const headers = Object.keys(data[0] || {});
-      const csvRows = [
-        headers.join(','),
-        ...data.map(row => headers.map(header => row[header] || '').join(','))
-      ];
-      return csvRows.join('\n');
-    }
-    return JSON.stringify(data, null, 2);
-  };
-
-  const toggleSection = (category: string) => {
-    setCollapsedSections(prev => 
-      prev.includes(category) 
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
-    );
-  };
-
-  const handleUtilityAction = async (utilityId: string) => {
-    if (files.length === 0) {
-      toast({
-        title: "No Files Uploaded",
-        description: "Please upload CSV files first to analyze data.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsAnalyzing(true);
-    setSelectedUtility(utilityId);
-    
-    try {
-      const parsedData = getParsedData();
-      const fileContext = files.map(file => {
-        const basicInfo = `File: ${file.name}\nType: ${file.type}\nSize: ${file.size} bytes`;
-        
-        if (file.parsedData && file.parsedData.length > 0) {
-          const sampleData = file.parsedData.slice(0, 5);
-          const columns = Object.keys(file.parsedData[0]);
-          return `${basicInfo}\nRows: ${file.parsedData.length}\nColumns: [${columns.join(', ')}]\nSample Data:\n${JSON.stringify(sampleData, null, 2)}`;
-        }
-        return basicInfo;
-      }).join('\n\n');
-
-      let prompt = '';
-      switch (utilityId) {
-        case 'dashboard-preview':
-          prompt = `Based on the uploaded data, create actual dashboard charts with real data samples. 
-          For each chart, provide:
-          - Chart type (bar, line, pie, area)
-          - Title for the chart
-          - Actual data points from the uploaded files (at least 5-10 points)
-          - X and Y axis keys
-          
-          Return a JSON response with this structure:
-          {
-            "summary": "Dashboard preview with X charts created",
-            "charts": [
-              {
-                "type": "bar",
-                "title": "Chart Title",
-                "data": [{"name": "Item1", "value": 100}, ...],
-                "xKey": "name",
-                "yKey": "value"
-              }
-            ],
-            "insights": "Key insights about the visualizations"
-          }
-          
-          Use actual column names and data from the uploaded files.`;
-          break;
-        case 'analyze-structure':
-          prompt = `Analyze the CSV structure in detail. Provide:
-          ## Data Structure Analysis
-          
-          ### File Overview
-          - File count: X
-          - Total rows: X
-          - Data quality score: X/10
-          
-          ### Column Analysis
-          | Column Name | Data Type | Null Count | Sample Values |
-          |-------------|-----------|------------|---------------|
-          
-          ### Data Quality Issues
-          - **Missing Values**: X% of data
-          - **Duplicates**: X records
-          - **Inconsistent Formats**: Details
-          
-          ### Recommendations
-          1. **Priority fixes**
-          2. **Data transformation suggestions**
-          3. **Quality improvement steps**`;
-          break;
-        default:
-          prompt = `Analyze the provided data for ${utilities.find(u => u.id === utilityId)?.title}. 
-          Provide structured analysis with headers, tables, bullet points, and actionable insights.
-          Use markdown formatting with proper headers (##, ###), tables (|), lists (-), and emphasis (**bold**, *italic*).`;
+  // Mock data for demonstration
+  const mockPreviewData = {
+    tables: [
+      {
+        table_name: "DailyStockPrices",
+        columns: ["Date", "Symbol", "Open", "High", "Low", "Close", "Volume"],
+        row_count: 1500,
+        sample_data: [
+          ["2024-01-01", "AAPL", 180.50, 185.20, 179.80, 184.10, 52000000],
+          ["2024-01-01", "GOOGL", 142.30, 145.80, 141.50, 144.20, 28000000],
+          ["2024-01-01", "MSFT", 375.20, 378.90, 374.10, 377.50, 31000000]
+        ]
       }
-
-      const response = await callGemini(prompt, fileContext);
-      
-      if (response.error) {
-        throw new Error(response.error);
-      }
-
-      let parsedResults;
-      let charts = [];
-
-      // Special handling for dashboard preview
-      if (utilityId === 'dashboard-preview') {
-        try {
-          const jsonMatch = response.text.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            parsedResults = JSON.parse(jsonMatch[0]);
-            if (parsedResults.charts) {
-              charts = parsedResults.charts.map((chart: any) => ({
-                type: chart.type || 'bar',
-                title: chart.title || 'Untitled Chart',
-                data: chart.data || [],
-                xKey: chart.xKey || 'name',
-                yKey: chart.yKey || 'value'
-              }));
-            }
-          }
-        } catch (e) {
-          // Fallback: create sample charts from actual data
-          const sampleData = parsedData.slice(0, 10);
-          if (sampleData.length > 0) {
-            const numericColumns = Object.keys(sampleData[0]).filter(key => 
-              !isNaN(Number(sampleData[0][key]))
-            );
-            const textColumns = Object.keys(sampleData[0]).filter(key => 
-              isNaN(Number(sampleData[0][key]))
-            );
-
-            if (numericColumns.length > 0 && textColumns.length > 0) {
-              charts = [{
-                type: 'bar',
-                title: `${numericColumns[0]} by ${textColumns[0]}`,
-                data: sampleData.map((item, index) => ({
-                  name: item[textColumns[0]] || `Item ${index + 1}`,
-                  value: Number(item[numericColumns[0]]) || 0
-                })),
-                xKey: 'name',
-                yKey: 'value'
-              }];
-            }
-          }
-        }
-      }
-
-      setAnalysisResults({
-        title: utilities.find(u => u.id === utilityId)?.title || 'Analysis Results',
-        type: utilityId,
-        content: response.text,
-        timestamp: new Date().toISOString(),
-        hasCharts: charts.length > 0
-      });
-
-      setDashboardCharts(charts);
-
-      toast({
-        title: "Analysis Complete",
-        description: `${utilities.find(u => u.id === utilityId)?.title} completed successfully.`,
-      });
-    } catch (error: any) {
-      console.error('Analysis error:', error);
-      toast({
-        title: "Analysis Failed",
-        description: error.message || "Failed to analyze data. Please check your API key and try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsAnalyzing(false);
-    }
+    ],
+    summary: "Database contains 1 table with 1,500 stock price records",
+    last_updated: "2024-06-01T14:25:30"
   };
 
-  const categories = Array.from(new Set(utilities.map(u => u.category)));
-
-  const renderResults = () => {
-    if (!analysisResults) return null;
-
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4">
-          <div>
-            <h4 className="text-xl font-bold text-gray-900 dark:text-gray-100">{analysisResults.title}</h4>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Analyzed {files.length} file(s) • {getParsedData().length} total rows
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button 
-              onClick={() => exportToExcel(analysisResults.content, analysisResults.title)}
-              size="sm"
-              variant="outline"
-              className="flex items-center gap-1"
-            >
-              <Download className="w-3 h-3" />
-              Export
-            </Button>
-            {dashboardCharts.length > 0 && (
-              <Button 
-                onClick={() => exportChartAsPNG('dashboard', 'dashboard')}
-                size="sm"
-                variant="outline"
-                className="flex items-center gap-1"
-              >
-                <ImageIcon className="w-3 h-3" />
-                PNG
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {dashboardCharts.length > 0 && (
-          <div className="space-y-4">
-            <h5 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Interactive Dashboard Preview
-            </h5>
-            <ChartVisualization charts={dashboardCharts} />
-          </div>
-        )}
-
-        <div className="space-y-4">
-          <h5 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Analysis Results
-          </h5>
-          <Card className="p-6 bg-gray-50 dark:bg-gray-800">
-            <ResponseFormatter content={analysisResults.content} />
-          </Card>
-        </div>
-
-        <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
-          Generated at: {new Date(analysisResults.timestamp).toLocaleString()}
-        </div>
-      </div>
-    );
+  const handleFileSelect = (file: any) => {
+    setSelectedFile(file);
+    // Simulate data preview
+    setPreviewData(mockPreviewData);
   };
-
-  // Check if API key is available
-  const apiKey = localStorage.getItem('gemini_api_key');
-  const showApiKeyWarning = !apiKey;
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      {/* Header Section */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-            <Database className="w-5 h-5 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900">
+      {/* Header */}
+      <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg shadow-sm border-b dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/')}
+                className="flex items-center gap-2 hover-scale"
+              >
+                <Home className="w-4 h-4" />
+                Home
+              </Button>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                Datasource Utilities
+              </h1>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button variant="outline" size="sm" className="flex items-center gap-2 hover-scale">
+                <RefreshCw className="w-4 h-4" />
+                Refresh
+              </Button>
+              <Button variant="outline" size="sm" className="flex items-center gap-2 hover-scale">
+                <Settings className="w-4 h-4" />
+                Settings
+              </Button>
+            </div>
           </div>
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              Datasource Utilities
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              Advanced data analysis and visualization tools powered by AI
-            </p>
-          </div>
         </div>
-        
-        {/* Status Indicators */}
-        <div className="flex flex-wrap gap-3">
-          {showApiKeyWarning ? (
-            <div className="flex items-center gap-2 px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-              <AlertTriangle className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
-              <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                API Key Required
-              </span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-              <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
-              <span className="text-sm font-medium text-green-800 dark:text-green-200">
-                Gemini AI Ready
-              </span>
-            </div>
-          )}
-          
-          {files && files.length > 0 ? (
-            <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-              <CheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                {files.length} file(s) • {getParsedData().length} rows ready
-              </span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-              <AlertTriangle className="w-4 h-4 text-gray-500" />
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                No files uploaded
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Functions Panel */}
-        <div className="space-y-6">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            Available Functions
-          </h3>
-          
-          {categories.map((category) => {
-            const categoryUtilities = utilities.filter(u => u.category === category);
-            const isCollapsed = collapsedSections.includes(category);
-            
-            return (
-              <Card key={category} className="overflow-hidden shadow-sm">
-                <div 
-                  className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b cursor-pointer hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-200"
-                  onClick={() => toggleSection(category)}
-                >
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 capitalize flex items-center gap-2">
-                      {category === 'analysis' && <Search className="w-4 h-4" />}
-                      {category === 'visualization' && <BarChart className="w-4 h-4" />}
-                      {category === 'schema' && <Table className="w-4 h-4" />}
-                      {category} Functions
-                    </h4>
-                    {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </div>
-                </div>
-                
-                {!isCollapsed && (
-                  <div className="p-4 space-y-3">
-                    {categoryUtilities.map((utility) => {
-                      const IconComponent = utility.icon;
-                      return (
-                        <div key={utility.id} className="group flex items-center gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all duration-200">
-                          <div className={`w-12 h-12 rounded-xl ${utility.color} flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-200`}>
-                            <IconComponent className="w-5 h-5 text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h5 className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                              {utility.title}
-                            </h5>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                              {utility.description}
-                            </p>
-                          </div>
-                          <div className="flex flex-col gap-2">
-                            <Button 
-                              onClick={() => handleUtilityAction(utility.id)}
-                              disabled={isAnalyzing || files.length === 0 || !apiKey}
-                              size="sm"
-                              className="text-xs px-4 py-2 h-8 bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
-                            >
-                              {isAnalyzing && selectedUtility === utility.id ? (
-                                <span className="flex items-center gap-1">
-                                  <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
-                                  Running...
-                                </span>
-                              ) : (
-                                'Run Analysis'
-                              )}
-                            </Button>
-                            <Button 
-                              variant="ghost"
-                              size="sm"
-                              className="text-xs px-3 py-1 h-6 text-gray-500 hover:text-gray-700"
-                              onClick={() => setSelectedUtility(utility.id)}
-                            >
-                              <Eye className="w-3 h-3 mr-1" />
-                              Details
-                            </Button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </Card>
-            );
-          })}
-        </div>
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)]">
+          {/* Left Panel - Utilities */}
+          <div className="space-y-6">
+            <Card className="p-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 shadow-xl">
+              <div className="flex items-center gap-3 mb-6">
+                <Database className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Data Source Management</h2>
+              </div>
 
-        {/* Results Panel */}
-        <div className="space-y-6">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            Analysis Results
-          </h3>
-          
-          <Card className="h-[calc(100vh-300px)] shadow-sm">
-            <ScrollArea className="h-full">
-              <div className="p-6">
-                {isAnalyzing ? (
-                  <div className="flex flex-col items-center justify-center h-64 space-y-6">
-                    <div className="relative">
-                      <div className="w-16 h-16 border-4 border-blue-200 dark:border-blue-800 rounded-full"></div>
-                      <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin absolute top-0"></div>
+              <Tabs defaultValue="files" className="w-full">
+                <TabsList className="grid w-full grid-cols-3 mb-6">
+                  <TabsTrigger value="files" className="flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Files
+                  </TabsTrigger>
+                  <TabsTrigger value="databases" className="flex items-center gap-2">
+                    <Database className="w-4 h-4" />
+                    Databases
+                  </TabsTrigger>
+                  <TabsTrigger value="apis" className="flex items-center gap-2">
+                    <Upload className="w-4 h-4" />
+                    APIs
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="files" className="space-y-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input placeholder="Search files..." className="pl-10" />
                     </div>
-                    <div className="text-center space-y-2">
-                      <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        AI Analysis in Progress
-                      </h4>
-                      <p className="text-gray-600 dark:text-gray-400">
-                        Processing your data with advanced AI algorithms...
-                      </p>
-                      <div className="text-sm text-blue-600 dark:text-blue-400">
-                        {utilities.find(u => u.id === selectedUtility)?.title}
+                    <Button variant="outline" size="sm">
+                      <Filter className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  <ScrollArea className="h-[400px] pr-4">
+                    <div className="space-y-3">
+                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                        Uploaded Files ({files.length})
                       </div>
+                      
+                      {files.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                          <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                          <p>No files uploaded yet</p>
+                          <p className="text-sm">Upload files from the CSV Upload tab</p>
+                        </div>
+                      ) : (
+                        files.map((file, index) => (
+                          <Card
+                            key={index}
+                            className={`p-4 cursor-pointer transition-all hover-scale border-2 ${
+                              selectedFile?.name === file.name
+                                ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                                : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
+                            }`}
+                            onClick={() => handleFileSelect(file)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <FileText className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                <div>
+                                  <div className="font-medium text-gray-900 dark:text-white">
+                                    {file.name}
+                                  </div>
+                                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                                    {(file.size / 1024).toFixed(2)} KB
+                                  </div>
+                                </div>
+                              </div>
+                              <Badge variant="outline" className="text-green-600 border-green-600 bg-green-50 dark:bg-green-900/20">
+                                Processed
+                              </Badge>
+                            </div>
+                          </Card>
+                        ))
+                      )}
                     </div>
-                  </div>
-                ) : analysisResults ? (
-                  renderResults()
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-64 text-center space-y-4">
-                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                      <Database className="w-8 h-8 text-gray-400" />
+                  </ScrollArea>
+                </TabsContent>
+
+                <TabsContent value="databases" className="space-y-4">
+                  <ScrollArea className="h-[400px] pr-4">
+                    <div className="space-y-4">
+                      <Card className="p-4 hover-scale cursor-pointer border border-dashed border-gray-300 dark:border-gray-600 hover:border-purple-400">
+                        <div className="text-center py-6">
+                          <Database className="w-8 h-8 mx-auto mb-3 text-gray-400" />
+                          <p className="text-gray-600 dark:text-gray-400">Connect a database</p>
+                          <Button variant="outline" size="sm" className="mt-3">
+                            Add Connection
+                          </Button>
+                        </div>
+                      </Card>
                     </div>
-                    <div className="space-y-2">
-                      <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                        Ready for Analysis
-                      </h4>
-                      <p className="text-gray-600 dark:text-gray-400 max-w-sm">
-                        {files.length === 0 
-                          ? 'Upload CSV files and run analysis functions to see detailed results with interactive visualizations'
-                          : 'Select and run a utility function to analyze your uploaded data with AI-powered insights'
-                        }
-                      </p>
+                  </ScrollArea>
+                </TabsContent>
+
+                <TabsContent value="apis" className="space-y-4">
+                  <ScrollArea className="h-[400px] pr-4">
+                    <div className="space-y-4">
+                      <Card className="p-4 hover-scale cursor-pointer border border-dashed border-gray-300 dark:border-gray-600 hover:border-purple-400">
+                        <div className="text-center py-6">
+                          <Upload className="w-8 h-8 mx-auto mb-3 text-gray-400" />
+                          <p className="text-gray-600 dark:text-gray-400">Connect an API</p>
+                          <Button variant="outline" size="sm" className="mt-3">
+                            Add API
+                          </Button>
+                        </div>
+                      </Card>
                     </div>
-                  </div>
+                  </ScrollArea>
+                </TabsContent>
+              </Tabs>
+            </Card>
+          </div>
+
+          {/* Right Panel - Preview */}
+          <div className="space-y-6">
+            <Card className="p-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 shadow-xl h-full">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Data Preview</h2>
+                </div>
+                {previewData && (
+                  <Button variant="outline" size="sm" className="flex items-center gap-2 hover-scale">
+                    <Download className="w-4 h-4" />
+                    Export
+                  </Button>
                 )}
               </div>
-            </ScrollArea>
-          </Card>
+
+              <ScrollArea className="h-[calc(100%-100px)]">
+                {!previewData ? (
+                  <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                    <div className="text-center">
+                      <Database className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                      <p className="text-lg mb-2">Select a data source</p>
+                      <p className="text-sm">Choose a file or connection to preview data</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card className="p-4 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                          {previewData.tables?.length || 0}
+                        </div>
+                        <div className="text-sm text-blue-700 dark:text-blue-300">Tables</div>
+                      </Card>
+                      <Card className="p-4 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                          {previewData.tables?.[0]?.row_count || 0}
+                        </div>
+                        <div className="text-sm text-green-700 dark:text-green-300">Records</div>
+                      </Card>
+                      <Card className="p-4 bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800">
+                        <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                          {previewData.tables?.[0]?.columns?.length || 0}
+                        </div>
+                        <div className="text-sm text-purple-700 dark:text-purple-300">Columns</div>
+                      </Card>
+                    </div>
+
+                    {previewData.tables?.map((table: any, index: number) => (
+                      <div key={index} className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          {table.table_name}
+                        </h3>
+                        
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-600 rounded-lg">
+                            <thead className="bg-gray-100 dark:bg-gray-800">
+                              <tr>
+                                {table.columns?.map((column: string, colIndex: number) => (
+                                  <th
+                                    key={colIndex}
+                                    className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-semibold text-gray-800 dark:text-gray-200"
+                                  >
+                                    {column}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {table.sample_data?.slice(0, 5).map((row: any[], rowIndex: number) => (
+                                <tr key={rowIndex} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                  {row.map((cell: any, cellIndex: number) => (
+                                    <td
+                                      key={cellIndex}
+                                      className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-gray-700 dark:text-gray-300"
+                                    >
+                                      {typeof cell === 'number' ? cell.toLocaleString() : cell}
+                                    </td>
+                                  ))}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          Showing 5 of {table.row_count?.toLocaleString()} records
+                        </div>
+                      </div>
+                    ))}
+
+                    <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <ResponseFormatter
+                        content={`## Data Summary\n\n${previewData.summary}\n\n**Last Updated:** ${previewData.last_updated || '—'}`}
+                        enableExports={true}
+                        title="Datasource_Preview"
+                      />
+                    </div>
+                  </div>
+                )}
+              </ScrollArea>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

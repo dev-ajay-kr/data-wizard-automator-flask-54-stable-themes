@@ -8,18 +8,21 @@ import { Functions } from '@/components/Functions';
 
 const Index = () => {
   const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState('chat');
+  const [activeTab, setActiveTab] = useState('gemini');
 
   useEffect(() => {
     const tab = searchParams.get('tab');
     if (tab) {
       setActiveTab(tab);
+    } else {
+      // Default to gemini if no tab specified
+      setActiveTab('gemini');
     }
   }, [searchParams]);
 
   const renderActiveTab = () => {
     switch (activeTab) {
-      case 'chat':
+      case 'gemini':
         return (
           <div className="animate-fade-in">
             <ChatInterface />

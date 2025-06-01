@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 
 const navigationItems = [
   { icon: Home, label: 'Home', path: '/' },
-  { icon: MessageCircle, label: 'Chat', path: '/chat' },
+  { icon: MessageCircle, label: 'Gemini', path: '/chat?tab=gemini' },
   { icon: Upload, label: 'CSV Upload', path: '/chat?tab=csv-upload' },
   { icon: Database, label: 'Datasource', path: '/chat?tab=datasource-utilities' },
   { icon: Settings, label: 'Functions', path: '/chat?tab=functions' },
@@ -21,7 +21,7 @@ export const Navigation: React.FC = () => {
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/' && !location.search;
-    if (path === '/chat') return location.pathname === '/chat' && !location.search;
+    if (path === '/chat?tab=gemini') return location.pathname === '/chat' && (location.search.includes('tab=gemini') || !location.search);
     if (path.includes('?tab=')) {
       const [pathname, search] = path.split('?');
       return location.pathname === pathname && location.search.includes(search);
