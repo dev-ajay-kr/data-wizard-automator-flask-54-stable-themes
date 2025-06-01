@@ -4,10 +4,13 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Upload, FileText, CheckCircle, AlertCircle, MessageCircle, Send, Bot, User, Key } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertCircle, MessageCircle, Send, Bot, User, Key, Home, Edit } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useGemini } from '@/hooks/useGemini';
 import { useFiles } from '@/contexts/FileContext';
+import { useNavigate } from 'react-router-dom';
+import { ResponseFormatter } from './ResponseFormatter';
 
 interface UploadedFile {
   name: string;
@@ -30,14 +33,17 @@ export const CSVUpload: React.FC = () => {
   const [showChat, setShowChat] = useState(false);
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('gemini_api_key') || '');
   const [showApiKeyInput, setShowApiKeyInput] = useState(!localStorage.getItem('gemini_api_key'));
+  const [editingApiKey, setEditingApiKey] = useState(false);
   const { toast } = useToast();
   const { callGemini, isLoading: isChatLoading } = useGemini();
   const { addFile, getFileData } = useFiles();
+  const navigate = useNavigate();
 
   const handleApiKeySubmit = () => {
     if (apiKey.trim()) {
       localStorage.setItem('gemini_api_key', apiKey.trim());
       setShowApiKeyInput(false);
+      setEditingApiKey(false);
       toast({
         title: "🔑 **API Key Saved**",
         description: "Gemini API key has been saved successfully.",
@@ -224,33 +230,76 @@ export const CSVUpload: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-blue-600 mb-2 flex items-center gap-2">
-          <Upload className="w-6 h-6" />
-          **CSV Upload**
-        </h2>
-        <p className="text-gray-600">Upload your CSV files for analysis and processing</p>
+      {/* Header with Navigation */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-blue-600 mb-2 flex items-center gap-2">
+            <Upload className="w-6 h-6" />
+            **CSV Upload**
+          </h2>
+          <p className="text-gray-600">Upload your CSV files for analysis and processing</p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => navigate('/chat')}
+          className="flex items-center gap-2"
+        >
+          <Home className="w-4 h-4" />
+          Back to Chat
+        </Button>
       </div>
 
-      {/* API Key Input */}
-      {showApiKeyInput && (
-        <Card className="p-4 mb-6 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
-          <div className="flex items-center gap-2 mb-3">
-            <Key className="w-5 h-5 text-yellow-600" />
-            <h3 className="font-medium text-yellow-800 dark:text-yellow-200">**Gemini API Key Required**</h3>
+      {/* API Key Management */}
+      <Card className="p-4 mb-6 border-blue-200 bg-blue-50 dark:bg-blue-900/20">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Key className="w-5 h-5 text-blue-600" />
+            <h3 className="font-medium text-blue-800 dark:text-blue-200">**Gemini API Key**</h3>
+            {apiKey && !editingApiKey && (
+              <Badge variant="outline" className="text-green-600 border-green-600">
+                Configured ({apiKey.substring(0, 8)}...)
+              </Badge>
+            )}
           </div>
-          <div className="flex gap-2">
-            <Input
-              type="password"
-              placeholder="Enter your Gemini API key..."
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              className="flex-1"
-            />
-            <Button onClick={handleApiKeySubmit}>Save</Button>
+          {apiKey && !editingApiKey && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditingApiKey(true)}
+              className="flex items-center gap-2"
+            >
+              <Edit className="w-4 h-4" />
+              Edit Key
+            </Button>
+          )}
+        </div>
+        
+        {(showApiKeyInput || editingApiKey) && (
+          <div className="mt-3">
+            <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+              Enter your Gemini API key to enable chat functionality with your uploaded data.
+            </p>
+            <div className="flex gap-2">
+              <Input
+                type="password"
+                placeholder="Enter your Gemini API key..."
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="flex-1"
+              />
+              <Button onClick={handleApiKeySubmit}>Save Key</Button>
+              {editingApiKey && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setEditingApiKey(false)}
+                >
+                  Cancel
+                </Button>
+              )}
+            </div>
           </div>
-        </Card>
-      )}
+        )}
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Upload Section */}
@@ -377,9 +426,7 @@ export const CSVUpload: React.FC = () => {
                           : 'bg-gray-100 text-gray-900'
                       }`}>
                         {message.role === 'assistant' ? (
-                          <div className="prose prose-sm max-w-none">
-                            {renderFormattedMessage(message.content)}
-                          </div>
+                          <ResponseFormatter content={message.content} />
                         ) : (
                           message.content.split('\n').map((line, i) => (
                             line ? <p key={i} className="mb-1 last:mb-0">{line}</p> : <br key={i} />

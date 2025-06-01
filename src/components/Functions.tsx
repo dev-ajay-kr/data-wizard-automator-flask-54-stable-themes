@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Play, Eye, Settings, BookOpen, Search, Key, AlertCircle } from 'lucide-react';
+import { Play, Eye, Settings, BookOpen, Search, Key, AlertCircle, Home, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 import { FunctionCard } from './functions/FunctionCard';
 import { PreviewPanel } from './functions/PreviewPanel';
 import { DocumentationTab } from './functions/DocumentationTab';
-import { functions } from './functions/data';
+import { etlFunctions } from './functions/data';
 import { FunctionItem, FunctionResult } from './functions/types';
 import { callGeminiAPI, exportToExcel, exportChartAsPNG, exportToText, isGeminiApiAvailable, processFileDataForAnalysis } from './functions/utils';
 import { useFiles } from '@/contexts/FileContext';
@@ -22,8 +23,10 @@ export const Functions: React.FC = () => {
   const [executingFunction, setExecutingFunction] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('gemini_api_key') || '');
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [editingApiKey, setEditingApiKey] = useState(false);
   const { toast } = useToast();
   const { files } = useFiles();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const hasApiKey = isGeminiApiAvailable();
@@ -34,6 +37,7 @@ export const Functions: React.FC = () => {
     if (apiKey.trim()) {
       localStorage.setItem('gemini_api_key', apiKey.trim());
       setShowApiKeyInput(false);
+      setEditingApiKey(false);
       toast({
         title: "🔑 **API Key Saved**",
         description: "Gemini API key has been saved successfully.",
@@ -61,7 +65,7 @@ export const Functions: React.FC = () => {
       return;
     }
 
-    const func = functions.find(f => f.id === functionId);
+    const func = etlFunctions.find(f => f.id === functionId);
     if (!func) return;
 
     setExecutingFunction(functionId);
@@ -112,7 +116,7 @@ export const Functions: React.FC = () => {
   };
 
   const handleViewFunction = (functionId: string) => {
-    const func = functions.find(f => f.id === functionId);
+    const func = etlFunctions.find(f => f.id === functionId);
     if (func) {
       setSelectedFunction(functionId);
       setShowFunctionDetails(true);
@@ -133,59 +137,99 @@ export const Functions: React.FC = () => {
     exportChartAsPNG('function-result-chart', title);
   };
 
-  const filteredFunctions = functions.filter(func =>
+  const filteredFunctions = etlFunctions.filter(func =>
     func.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     func.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
     func.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const functionDetails = selectedFunction ? functions.find(f => f.id === selectedFunction) : null;
+  const functionDetails = selectedFunction ? etlFunctions.find(f => f.id === selectedFunction) : null;
 
   return (
     <div className="max-w-7xl mx-auto p-6">
-      <div className="mb-6">
-        <h2 className="text-3xl font-bold text-blue-600 mb-2 flex items-center gap-2">
-          <Settings className="w-8 h-8" />
-          **ETL Functions**
-        </h2>
-        <p className="text-gray-600 dark:text-gray-400">Execute advanced data processing and analysis functions</p>
+      {/* Header with Navigation */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold text-blue-600 mb-2 flex items-center gap-2">
+            <Settings className="w-8 h-8" />
+            **ETL Functions**
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">Execute advanced data processing and analysis functions</p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => navigate('/chat')}
+          className="flex items-center gap-2"
+        >
+          <Home className="w-4 h-4" />
+          Back to Chat
+        </Button>
       </div>
 
-      {/* API Key Setup */}
-      {showApiKeyInput && (
-        <Card className="p-4 mb-6 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
-          <div className="flex items-center gap-2 mb-3">
-            <Key className="w-5 h-5 text-yellow-600" />
-            <h3 className="font-medium text-yellow-800 dark:text-yellow-200">**Gemini API Key Required**</h3>
+      {/* API Key Management */}
+      <Card className="p-4 mb-6 border-blue-200 bg-blue-50 dark:bg-blue-900/20">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Key className="w-5 h-5 text-blue-600" />
+            <h3 className="font-medium text-blue-800 dark:text-blue-200">**Gemini API Key**</h3>
+            {apiKey && !editingApiKey && (
+              <Badge variant="outline" className="text-green-600 border-green-600">
+                Configured ({apiKey.substring(0, 8)}...)
+              </Badge>
+            )}
           </div>
-          <p className="text-sm text-yellow-700 dark:text-yellow-300 mb-3">
-            Functions require a Gemini API key for AI-powered analysis. Get your free key from Google AI Studio.
-          </p>
-          <div className="flex gap-2">
-            <Input
-              type="password"
-              placeholder="Enter your Gemini API key..."
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              className="flex-1"
-            />
-            <Button onClick={handleApiKeySubmit}>Save Key</Button>
+          {apiKey && !editingApiKey && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditingApiKey(true)}
+              className="flex items-center gap-2"
+            >
+              <Edit className="w-4 h-4" />
+              Edit Key
+            </Button>
+          )}
+        </div>
+        
+        {(showApiKeyInput || editingApiKey) && (
+          <div className="mt-3">
+            <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+              Functions require a Gemini API key for AI-powered analysis. Get your free key from Google AI Studio.
+            </p>
+            <div className="flex gap-2">
+              <Input
+                type="password"
+                placeholder="Enter your Gemini API key..."
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="flex-1"
+              />
+              <Button onClick={handleApiKeySubmit}>Save Key</Button>
+              {editingApiKey && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setEditingApiKey(false)}
+                >
+                  Cancel
+                </Button>
+              )}
+            </div>
           </div>
-        </Card>
-      )}
+        )}
+      </Card>
 
       {/* Status Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card className="p-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="font-medium">**{functions.filter(f => f.status === 'active').length}** Active Functions</span>
+            <span className="font-medium">**{etlFunctions.filter(f => f.status === 'active').length}** Active Functions</span>
           </div>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-            <span className="font-medium">**{functions.filter(f => f.status === 'beta').length}** Beta Functions</span>
+            <span className="font-medium">**{etlFunctions.filter(f => f.status === 'beta').length}** Beta Functions</span>
           </div>
         </Card>
         <Card className="p-4">

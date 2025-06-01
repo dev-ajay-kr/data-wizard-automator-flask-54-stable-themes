@@ -14,7 +14,7 @@ export interface FunctionResult {
   title: string;
   summary: string;
   details: string;
-  timestamp: number;
+  timestamp: string;
   exportable: boolean;
   error?: boolean;
 }

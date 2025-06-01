@@ -6,12 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageCircle, Send, Key, Moon, Sun, Mic, Home } from 'lucide-react';
+import { MessageCircle, Send, Key, Moon, Sun, Mic, Home, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useFiles } from '@/contexts/FileContext';
 import { MessageBubble } from './MessageBubble';
 import { FileUpload } from './FileUpload';
+import { ResponseFormatter } from './ResponseFormatter';
 import { useNavigate } from 'react-router-dom';
 
 interface Message {
@@ -26,6 +27,7 @@ export const ChatInterface: React.FC = () => {
   const [apiKey, setApiKey] = useState('AIzaSyD7xOyEoBciNbIA4Sdnsw-NnNNqJ7ylX1A');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [editingApiKey, setEditingApiKey] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { darkMode, toggleDarkMode } = useTheme();
@@ -57,8 +59,18 @@ export const ChatInterface: React.FC = () => {
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newApiKey = e.target.value;
     setApiKey(newApiKey);
-    localStorage.setItem('gemini_api_key', newApiKey);
-    console.log('API key updated and saved to localStorage');
+  };
+
+  const handleApiKeySave = () => {
+    if (apiKey.trim()) {
+      localStorage.setItem('gemini_api_key', apiKey.trim());
+      setEditingApiKey(false);
+      toast({
+        title: "🔑 **API Key Saved**",
+        description: "Gemini API key has been saved successfully.",
+      });
+      console.log('API key updated and saved to localStorage');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -175,24 +187,54 @@ export const ChatInterface: React.FC = () => {
       </header>
 
       <div className="max-w-4xl mx-auto p-6">
-        {/* API Key Input */}
-        <Card className="p-4 mb-6 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800">
-          <div className="flex items-center gap-2 mb-2">
-            <Key className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-            <h3 className="font-semibold text-amber-800 dark:text-amber-200">Gemini API Key</h3>
+        {/* API Key Management */}
+        <Card className="p-4 mb-6 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Key className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <h3 className="font-semibold text-blue-800 dark:text-blue-200">Gemini API Key</h3>
+              {apiKey && !editingApiKey && (
+                <Badge variant="outline" className="text-green-600 border-green-600">
+                  Configured ({apiKey.substring(0, 8)}...)
+                </Badge>
+              )}
+            </div>
+            {apiKey && !editingApiKey && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditingApiKey(true)}
+                className="flex items-center gap-2"
+              >
+                <Edit className="w-4 h-4" />
+                Edit Key
+              </Button>
+            )}
           </div>
-          <Input
-            type="password"
-            value={apiKey}
-            onChange={handleApiKeyChange}
-            placeholder="Enter your Gemini API key..."
-            className="bg-white dark:bg-gray-800"
-          />
-          <p className="text-xs text-amber-700 dark:text-amber-300 mt-2">
+          
+          {editingApiKey && (
+            <div className="mt-3">
+              <div className="flex gap-2">
+                <Input
+                  type="password"
+                  value={apiKey}
+                  onChange={handleApiKeyChange}
+                  placeholder="Enter your Gemini API key..."
+                  className="bg-white dark:bg-gray-800 flex-1"
+                />
+                <Button onClick={handleApiKeySave}>Save</Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setEditingApiKey(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+          
+          <p className="text-xs text-blue-700 dark:text-blue-300 mt-2">
             Your API key is stored locally in your browser. For production use, consider using Supabase for secure storage.
-          </p>
-          <p className="text-xs text-green-700 dark:text-green-300 mt-1">
-            Status: {apiKey ? `API key loaded (${apiKey.substring(0, 10)}...)` : 'No API key set'}
           </p>
         </Card>
 
@@ -229,7 +271,26 @@ export const ChatInterface: React.FC = () => {
             ) : (
               <div>
                 {messages.map((message) => (
-                  <MessageBubble key={message.id} message={message} />
+                  <div key={message.id} className={`flex gap-3 mb-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[80%] ${message.role === 'user' ? 'order-1' : 'order-2'}`}>
+                      <div className={`rounded-2xl px-4 py-3 ${
+                        message.role === 'user' 
+                          ? 'bg-blue-500 text-white rounded-br-md' 
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-bl-md'
+                      }`}>
+                        {message.role === 'assistant' ? (
+                          <ResponseFormatter content={message.content} />
+                        ) : (
+                          <p className="whitespace-pre-wrap">{message.content}</p>
+                        )}
+                      </div>
+                      <div className={`text-xs text-gray-500 dark:text-gray-400 mt-1 ${
+                        message.role === 'user' ? 'text-right' : 'text-left'
+                      }`}>
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  </div>
                 ))}
                 {isLoading && (
                   <div className="flex gap-3 mb-4 justify-start">
