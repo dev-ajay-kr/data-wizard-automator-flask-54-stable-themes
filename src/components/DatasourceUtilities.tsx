@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,11 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Database, FileText, Download, Upload, Settings, Search, Filter, RefreshCw, Home, BarChart } from 'lucide-react';
+import { Database, FileText, Download, Upload, Settings, Search, Filter, RefreshCw, Home, BarChart, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useFiles } from '@/contexts/FileContext';
 import { ResponseFormatter } from './ResponseFormatter';
 import { AnalysisFunctions } from './AnalysisFunctions';
+import { OnlineDatasource } from './OnlineDatasource';
 
 export const DatasourceUtilities: React.FC = () => {
   const navigate = useNavigate();
@@ -104,18 +104,14 @@ export const DatasourceUtilities: React.FC = () => {
                   </div>
 
                   <Tabs defaultValue="files" className="w-full h-full flex flex-col">
-                    <TabsList className="grid w-full grid-cols-3 mb-6 flex-shrink-0">
+                    <TabsList className="grid w-full grid-cols-2 mb-6 flex-shrink-0">
                       <TabsTrigger value="files" className="flex items-center gap-2">
                         <FileText className="w-4 h-4" />
                         Files
                       </TabsTrigger>
-                      <TabsTrigger value="databases" className="flex items-center gap-2">
-                        <Database className="w-4 h-4" />
-                        Databases
-                      </TabsTrigger>
-                      <TabsTrigger value="apis" className="flex items-center gap-2">
-                        <Upload className="w-4 h-4" />
-                        APIs
+                      <TabsTrigger value="online" className="flex items-center gap-2">
+                        <Globe className="w-4 h-4" />
+                        Online Datasource
                       </TabsTrigger>
                     </TabsList>
 
@@ -140,7 +136,7 @@ export const DatasourceUtilities: React.FC = () => {
                             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                               <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
                               <p>No files uploaded yet</p>
-                              <p className="text-sm">Upload files from the CSV Upload tab</p>
+                              <p className="text-sm">Upload files from the CSV Upload tab or fetch from Online Datasource</p>
                             </div>
                           ) : (
                             files.map((file, index) => (
@@ -162,6 +158,7 @@ export const DatasourceUtilities: React.FC = () => {
                                       </div>
                                       <div className="text-sm text-gray-500 dark:text-gray-400">
                                         {(file.size / 1024).toFixed(2)} KB
+                                        {file.parsedData && ` • ${file.parsedData.length} rows`}
                                       </div>
                                     </div>
                                   </div>
@@ -176,35 +173,9 @@ export const DatasourceUtilities: React.FC = () => {
                       </ScrollArea>
                     </TabsContent>
 
-                    <TabsContent value="databases" className="space-y-4 flex-1 overflow-hidden">
+                    <TabsContent value="online" className="space-y-4 flex-1 overflow-hidden">
                       <ScrollArea className="flex-1 pr-4">
-                        <div className="space-y-4">
-                          <Card className="p-4 hover-scale cursor-pointer border border-dashed border-gray-300 dark:border-gray-600 hover:border-purple-400">
-                            <div className="text-center py-6">
-                              <Database className="w-8 h-8 mx-auto mb-3 text-gray-400" />
-                              <p className="text-gray-600 dark:text-gray-400">Connect a database</p>
-                              <Button variant="outline" size="sm" className="mt-3">
-                                Add Connection
-                              </Button>
-                            </div>
-                          </Card>
-                        </div>
-                      </ScrollArea>
-                    </TabsContent>
-
-                    <TabsContent value="apis" className="space-y-4 flex-1 overflow-hidden">
-                      <ScrollArea className="flex-1 pr-4">
-                        <div className="space-y-4">
-                          <Card className="p-4 hover-scale cursor-pointer border border-dashed border-gray-300 dark:border-gray-600 hover:border-purple-400">
-                            <div className="text-center py-6">
-                              <Upload className="w-8 h-8 mx-auto mb-3 text-gray-400" />
-                              <p className="text-gray-600 dark:text-gray-400">Connect an API</p>
-                              <Button variant="outline" size="sm" className="mt-3">
-                                Add API
-                              </Button>
-                            </div>
-                          </Card>
-                        </div>
+                        <OnlineDatasource />
                       </ScrollArea>
                     </TabsContent>
                   </Tabs>
@@ -233,7 +204,7 @@ export const DatasourceUtilities: React.FC = () => {
                         <div className="text-center">
                           <Database className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                           <p className="text-lg mb-2">Select a data source</p>
-                          <p className="text-sm">Choose a file or connection to preview data</p>
+                          <p className="text-sm">Choose a file or fetch online data to preview</p>
                         </div>
                       </div>
                     ) : (

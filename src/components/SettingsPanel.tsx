@@ -68,7 +68,7 @@ export const SettingsPanel: React.FC = () => {
           <span className="hidden sm:inline">Settings</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Settings className="w-5 h-5" />
@@ -77,13 +77,18 @@ export const SettingsPanel: React.FC = () => {
         </DialogHeader>
         
         <div className="space-y-6 py-4">
-          {/* API Key Management */}
+          {/* API Key Management - Now prominently featured */}
           <div className="space-y-3">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Key className="w-5 h-5" />
-              API Configuration
-            </h3>
-            <ApiKeyManager showTitle={false} />
+            <div className="flex items-center gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+              <Key className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <div>
+                <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200">API Configuration</h3>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  Configure your Gemini API key for AI-powered analysis and chat functionality
+                </p>
+              </div>
+            </div>
+            <ApiKeyManager showTitle={false} className="border-2 border-blue-200 dark:border-blue-700" />
           </div>
 
           {/* Add Custom Function */}
