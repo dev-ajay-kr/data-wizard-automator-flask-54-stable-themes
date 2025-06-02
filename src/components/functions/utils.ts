@@ -62,16 +62,26 @@ export const processFileDataForAnalysis = (files: any[]): string => {
     const basicInfo = `File: ${file.name}\nType: ${file.type}\nSize: ${file.size} bytes`;
     
     if (file.parsedData && file.parsedData.length > 0) {
-      const sampleData = file.parsedData.slice(0, 5);
+      const sampleData = file.parsedData.slice(0, 10);
       const columns = Object.keys(file.parsedData[0]);
-      return `${basicInfo}\nRows: ${file.parsedData.length}\nColumns: [${columns.join(', ')}]\nSample Data:\n${JSON.stringify(sampleData, null, 2)}`;
+      const dataTypes = columns.map(col => {
+        const values = file.parsedData.slice(0, 100).map((row: any) => row[col]).filter((val: any) => val !== null && val !== undefined && val !== '');
+        const numericValues = values.filter((val: any) => !isNaN(Number(val)) && val !== '');
+        const dateValues = values.filter((val: any) => !isNaN(Date.parse(val)));
+        
+        if (numericValues.length > values.length * 0.8) return `${col}: numeric`;
+        if (dateValues.length > values.length * 0.5) return `${col}: date`;
+        return `${col}: text`;
+      });
+      
+      return `${basicInfo}\nRows: ${file.parsedData.length}\nColumns: [${columns.join(', ')}]\nData Types: [${dataTypes.join(', ')}]\nSample Data (first 10 rows):\n${JSON.stringify(sampleData, null, 2)}`;
     }
     
     if (file.preview && file.preview.length > 0) {
-      const previewText = file.preview.slice(0, 5).map(row => row.join(',')).join('\n');
-      return `${basicInfo}\nPreview:\n${previewText}`;
+      const previewText = file.preview.slice(0, 10).map(row => row.join(',')).join('\n');
+      return `${basicInfo}\nRows: ${file.preview.length}\nColumns: ${file.preview[0]?.length || 0}\nPreview (first 10 rows):\n${previewText}`;
     }
     
     return basicInfo;
-  }).join('\n\n');
+  }).join('\n\n---\n\n');
 };
