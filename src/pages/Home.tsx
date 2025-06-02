@@ -4,9 +4,11 @@ import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Upload, Database, Settings, Zap, BarChart3, Users, Shield, ArrowRight } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MessageCircle, Upload, Database, Settings, Zap, BarChart3, Users, Shield, ArrowRight, FileText, Beaker } from 'lucide-react';
 import { useFiles } from '@/contexts/FileContext';
 import { SettingsPanel } from '@/components/SettingsPanel';
+import { ProjectDocumentation } from '@/components/ProjectDocumentation';
 
 const Home = () => {
   const { files } = useFiles();
@@ -44,7 +46,7 @@ const Home = () => {
 
   const stats = [
     { label: 'Data Files Loaded', value: files.length, icon: Database },
-    { label: 'Functions Available', value: '12+', icon: Zap },
+    { label: 'Functions Available', value: '35+', icon: Zap },
     { label: 'Export Formats', value: '4', icon: BarChart3 },
     { label: 'Active Users', value: '1K+', icon: Users }
   ];
@@ -76,79 +78,104 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
-            {stats.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                <Card key={index} className="p-6 text-center hover-scale hover:shadow-xl transition-all duration-300">
-                  <Icon className="w-8 h-8 mx-auto mb-3 text-blue-600 dark:text-blue-400" />
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                    {stat.value}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    {stat.label}
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
+          <Tabs defaultValue="overview" className="space-y-8">
+            <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="features">Features</TabsTrigger>
+              <TabsTrigger value="documentation" className="flex items-center gap-1">
+                <FileText className="w-3 h-3" />
+                Docs
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Main Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <Card key={index} className="group hover-scale hover:shadow-2xl transition-all duration-300 overflow-hidden">
-                  <div className="p-8">
-                    <div className="flex items-center mb-6">
-                      <div className={`p-3 rounded-xl ${feature.color} text-white mr-4 group-hover:scale-110 transition-transform duration-300`}>
-                        <Icon className="w-6 h-6" />
+            <TabsContent value="overview">
+              {/* Quick Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+                {stats.map((stat, index) => {
+                  const Icon = stat.icon;
+                  return (
+                    <Card key={index} className="p-6 text-center hover-scale hover:shadow-xl transition-all duration-300">
+                      <Icon className="w-8 h-8 mx-auto mb-3 text-blue-600 dark:text-blue-400" />
+                      <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                        {stat.value}
                       </div>
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                        {feature.title}
-                      </h3>
-                    </div>
-                    
-                    <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
-                      {feature.description}
-                    </p>
-                    
-                    <Link to={feature.link}>
-                      <Button className="group/btn w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0">
-                        Get Started
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform duration-200" />
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        {stat.label}
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {/* Quick Actions */}
+              <Card className="p-8 bg-gradient-to-r from-blue-600 to-purple-600 text-white mb-12">
+                <div className="text-center">
+                  <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Data?</h2>
+                  <p className="text-blue-100 mb-6 text-lg">
+                    Start by uploading your data files or begin a conversation with our AI assistant
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Link to="/chat?tab=csv-upload">
+                      <Button size="lg" variant="secondary" className="w-full sm:w-auto">
+                        <Upload className="w-5 h-5 mr-2" />
+                        Upload Data
+                      </Button>
+                    </Link>
+                    <Link to="/chat">
+                      <Button size="lg" variant="outline" className="w-full sm:w-auto text-white border-white hover:bg-white hover:text-blue-600">
+                        <MessageCircle className="w-5 h-5 mr-2" />
+                        Start Chat
+                      </Button>
+                    </Link>
+                    <Link to="/chat?tab=functions">
+                      <Button size="lg" variant="outline" className="w-full sm:w-auto text-white border-white hover:bg-white hover:text-purple-600">
+                        <Beaker className="w-5 h-5 mr-2" />
+                        Try Beta Functions
                       </Button>
                     </Link>
                   </div>
-                </Card>
-              );
-            })}
-          </div>
+                </div>
+              </Card>
+            </TabsContent>
 
-          {/* Quick Actions */}
-          <Card className="p-8 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Data?</h2>
-              <p className="text-blue-100 mb-6 text-lg">
-                Start by uploading your data files or begin a conversation with our AI assistant
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/chat?tab=csv-upload">
-                  <Button size="lg" variant="secondary" className="w-full sm:w-auto">
-                    <Upload className="w-5 h-5 mr-2" />
-                    Upload Data
-                  </Button>
-                </Link>
-                <Link to="/chat">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto text-white border-white hover:bg-white hover:text-blue-600">
-                    <MessageCircle className="w-5 h-5 mr-2" />
-                    Start Chat
-                  </Button>
-                </Link>
+            <TabsContent value="features">
+              {/* Main Features Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+                {features.map((feature, index) => {
+                  const Icon = feature.icon;
+                  return (
+                    <Card key={index} className="group hover-scale hover:shadow-2xl transition-all duration-300 overflow-hidden">
+                      <div className="p-8">
+                        <div className="flex items-center mb-6">
+                          <div className={`p-3 rounded-xl ${feature.color} text-white mr-4 group-hover:scale-110 transition-transform duration-300`}>
+                            <Icon className="w-6 h-6" />
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                            {feature.title}
+                          </h3>
+                        </div>
+                        
+                        <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+                          {feature.description}
+                        </p>
+                        
+                        <Link to={feature.link}>
+                          <Button className="group/btn w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0">
+                            Get Started
+                            <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform duration-200" />
+                          </Button>
+                        </Link>
+                      </div>
+                    </Card>
+                  );
+                })}
               </div>
-            </div>
-          </Card>
+            </TabsContent>
+
+            <TabsContent value="documentation">
+              <ProjectDocumentation />
+            </TabsContent>
+          </Tabs>
 
           {/* Security Notice */}
           <div className="mt-12 text-center">

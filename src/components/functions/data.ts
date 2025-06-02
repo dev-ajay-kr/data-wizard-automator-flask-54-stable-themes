@@ -1,5 +1,6 @@
 
 import { FunctionItem } from './types';
+import { betaFunctions } from './betaData';
 
 export const etlFunctions: FunctionItem[] = [
   {
@@ -91,9 +92,10 @@ export const automationFunctions: FunctionItem[] = [
   }
 ];
 
-// Combined functions array for easy access
+// Combined functions array for easy access including beta functions
 export const functions: FunctionItem[] = [
   ...etlFunctions,
   ...analyticsFunctions,
-  ...automationFunctions
+  ...automationFunctions,
+  ...betaFunctions
 ];

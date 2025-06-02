@@ -6,13 +6,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Play, Eye, Settings, BookOpen, Search, AlertCircle, Home } from 'lucide-react';
+import { Play, Eye, Settings, BookOpen, Search, AlertCircle, Home, Zap, Beaker } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { FunctionCard } from './functions/FunctionCard';
-import { PreviewPanel } from './functions/PreviewPanel';
 import { DocumentationTab } from './functions/DocumentationTab';
-import { etlFunctions } from './functions/data';
+import { etlFunctions, analyticsFunctions, automationFunctions } from './functions/data';
+import { betaFunctions, betaFunctionCategories } from './functions/betaData';
 import { FunctionItem, FunctionResult } from './functions/types';
 import { callGeminiAPI, isGeminiApiAvailable, processFileDataForAnalysis } from './functions/utils';
 import { useFiles } from '@/contexts/FileContext';
@@ -24,9 +24,13 @@ export const Functions: React.FC = () => {
   const [showFunctionDetails, setShowFunctionDetails] = useState(false);
   const [functionResult, setFunctionResult] = useState<FunctionResult | null>(null);
   const [executingFunction, setExecutingFunction] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('functions');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const { toast } = useToast();
   const { files } = useFiles();
   const navigate = useNavigate();
+
+  const allFunctions = [...etlFunctions, ...analyticsFunctions, ...automationFunctions, ...betaFunctions];
 
   const handleExecuteFunction = async (functionId: string) => {
     if (!isGeminiApiAvailable()) {
@@ -47,7 +51,7 @@ export const Functions: React.FC = () => {
       return;
     }
 
-    const func = etlFunctions.find(f => f.id === functionId);
+    const func = allFunctions.find(f => f.id === functionId);
     if (!func) return;
 
     setExecutingFunction(functionId);
@@ -98,7 +102,7 @@ export const Functions: React.FC = () => {
   };
 
   const handleViewFunction = (functionId: string) => {
-    const func = etlFunctions.find(f => f.id === functionId);
+    const func = allFunctions.find(f => f.id === functionId);
     if (func) {
       setSelectedFunction(functionId);
       setShowFunctionDetails(true);
@@ -111,13 +115,33 @@ export const Functions: React.FC = () => {
     setSelectedFunction(null);
   };
 
-  const filteredFunctions = etlFunctions.filter(func =>
-    func.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    func.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    func.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const getFilteredFunctions = () => {
+    let functionsToFilter = allFunctions;
+    
+    if (selectedCategory !== 'all') {
+      functionsToFilter = allFunctions.filter(func => func.category === selectedCategory);
+    }
+    
+    return functionsToFilter.filter(func =>
+      func.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      func.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      func.category.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
 
-  const functionDetails = selectedFunction ? etlFunctions.find(f => f.id === selectedFunction) : null;
+  const functionDetails = selectedFunction ? allFunctions.find(f => f.id === selectedFunction) : null;
+
+  const categories = [
+    { id: 'all', name: 'All Functions', count: allFunctions.length },
+    { id: 'ETL', name: 'ETL', count: etlFunctions.length },
+    { id: 'Analytics', name: 'Analytics', count: analyticsFunctions.length },
+    { id: 'Automation', name: 'Automation', count: automationFunctions.length },
+    { id: 'Machine Learning', name: '🤖 ML Pipeline', count: betaFunctions.filter(f => f.category === 'Machine Learning').length },
+    { id: 'Real-time Analytics', name: '📈 Real-time', count: betaFunctions.filter(f => f.category === 'Real-time Analytics').length },
+    { id: 'Data Profiling', name: '🔍 Profiling', count: betaFunctions.filter(f => f.category === 'Data Profiling').length },
+    { id: 'Cloud Platforms', name: '☁️ Cloud', count: betaFunctions.filter(f => f.category === 'Cloud Platforms').length },
+    { id: 'AI Intelligence', name: '🧠 AI Intel', count: betaFunctions.filter(f => f.category === 'AI Intelligence').length }
+  ];
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -126,9 +150,9 @@ export const Functions: React.FC = () => {
         <div>
           <h2 className="text-3xl font-bold text-blue-600 mb-2 flex items-center gap-2">
             <Settings className="w-8 h-8" />
-            <strong>ETL Functions</strong>
+            <strong>ETL Functions Hub</strong>
           </h2>
-          <p className="text-gray-600 dark:text-gray-400">Execute advanced data processing and analysis functions</p>
+          <p className="text-gray-600 dark:text-gray-400">Execute advanced data processing and AI-powered analysis functions</p>
         </div>
         <Button
           variant="outline"
@@ -141,17 +165,17 @@ export const Functions: React.FC = () => {
       </div>
 
       {/* Status Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <Card className="p-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="font-medium"><strong>{etlFunctions.filter(f => f.status === 'active').length}</strong> Active Functions</span>
+            <span className="font-medium"><strong>{allFunctions.filter(f => f.status === 'active').length}</strong> Active Functions</span>
           </div>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-            <span className="font-medium"><strong>{etlFunctions.filter(f => f.status === 'beta').length}</strong> Beta Functions</span>
+            <span className="font-medium"><strong>{allFunctions.filter(f => f.status === 'beta').length}</strong> Beta Functions</span>
           </div>
         </Card>
         <Card className="p-4">
@@ -160,13 +184,23 @@ export const Functions: React.FC = () => {
             <span className="font-medium"><strong>{files.length}</strong> Data Files Loaded</span>
           </div>
         </Card>
+        <Card className="p-4">
+          <div className="flex items-center gap-2">
+            <Beaker className="w-4 h-4 text-purple-600" />
+            <span className="font-medium"><strong>{betaFunctions.length}</strong> Advanced Analytics</span>
+          </div>
+        </Card>
       </div>
 
-      <Tabs defaultValue="functions" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="functions" className="flex items-center gap-2">
             <Play className="w-4 h-4" />
             Functions
+          </TabsTrigger>
+          <TabsTrigger value="beta" className="flex items-center gap-2">
+            <Zap className="w-4 h-4" />
+            Beta Functions
           </TabsTrigger>
           <TabsTrigger value="documentation" className="flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
@@ -178,8 +212,8 @@ export const Functions: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Functions List */}
             <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="relative flex-1">
+              <div className="flex flex-col gap-4">
+                <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
                     placeholder="Search functions..."
@@ -187,6 +221,21 @@ export const Functions: React.FC = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
                   />
+                </div>
+                
+                {/* Category Filter */}
+                <div className="flex flex-wrap gap-2">
+                  {categories.slice(0, 4).map((category) => (
+                    <Button
+                      key={category.id}
+                      variant={selectedCategory === category.id ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedCategory(category.id)}
+                      className="text-xs"
+                    >
+                      {category.name} ({category.count})
+                    </Button>
+                  ))}
                 </div>
               </div>
 
@@ -203,7 +252,7 @@ export const Functions: React.FC = () => {
               )}
 
               <div className="grid gap-4">
-                {filteredFunctions.map((func) => (
+                {getFilteredFunctions().map((func) => (
                   <FunctionCard
                     key={func.id}
                     func={func}
@@ -256,6 +305,9 @@ export const Functions: React.FC = () => {
                       <div>
                         <Label className="text-sm font-medium text-gray-600">Category</Label>
                         <Badge variant="outline" className="ml-2">{functionDetails.category}</Badge>
+                        <Badge className={`ml-2 ${functionDetails.status === 'beta' ? 'bg-purple-100 text-purple-800' : ''}`}>
+                          {functionDetails.status}
+                        </Badge>
                       </div>
                       
                       <div>
@@ -294,6 +346,47 @@ export const Functions: React.FC = () => {
                 )}
               </Card>
             </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="beta">
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold text-purple-600 mb-2 flex items-center justify-center gap-2">
+                <Beaker className="w-6 h-6" />
+                🚀 Advanced Analytics Beta Functions
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Cutting-edge AI and machine learning powered data analysis capabilities
+              </p>
+            </div>
+
+            {betaFunctionCategories.map((category) => (
+              <Card key={category.id} className="p-6">
+                <div className="mb-4">
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                    {category.name}
+                  </h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {category.description}
+                  </p>
+                </div>
+                
+                <div className="grid gap-4 md:grid-cols-2">
+                  {category.functions.map((func) => (
+                    <FunctionCard
+                      key={func.id}
+                      func={func}
+                      onExecute={handleExecuteFunction}
+                      onView={handleViewFunction}
+                      executingFunction={executingFunction}
+                      filesLength={files.length}
+                      onSettings={() => {}}
+                    />
+                  ))}
+                </div>
+              </Card>
+            ))}
           </div>
         </TabsContent>
 
