@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageCircle, Send, Mic, Home } from 'lucide-react';
+import { MessageCircle, Send, Mic, Home, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useFiles } from '@/contexts/FileContext';
 import { FileUpload } from './FileUpload';
