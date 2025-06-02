@@ -1,10 +1,11 @@
+
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Upload, FileText, CheckCircle, AlertCircle, MessageCircle, Send, Bot, User, Key, Home, Edit } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertCircle, MessageCircle, Send, Bot, User, Home, Settings } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useGemini } from '@/hooks/useGemini';
@@ -31,25 +32,10 @@ export const CSVUpload: React.FC = () => {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [showChat, setShowChat] = useState(false);
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('gemini_api_key') || '');
-  const [showApiKeyInput, setShowApiKeyInput] = useState(!localStorage.getItem('gemini_api_key'));
-  const [editingApiKey, setEditingApiKey] = useState(false);
   const { toast } = useToast();
   const { callGemini, isLoading: isChatLoading } = useGemini();
   const { addFile, getFileData } = useFiles();
   const navigate = useNavigate();
-
-  const handleApiKeySubmit = () => {
-    if (apiKey.trim()) {
-      localStorage.setItem('gemini_api_key', apiKey.trim());
-      setShowApiKeyInput(false);
-      setEditingApiKey(false);
-      toast({
-        title: "🔑 **API Key Saved**",
-        description: "Gemini API key has been saved successfully.",
-      });
-    }
-  };
 
   const handleFileUpload = useCallback((files: FileList) => {
     Array.from(files).forEach(file => {
@@ -135,11 +121,11 @@ export const CSVUpload: React.FC = () => {
     e.preventDefault();
     if (!chatInput.trim()) return;
 
+    const apiKey = localStorage.getItem('gemini_api_key');
     if (!apiKey) {
-      setShowApiKeyInput(true);
       toast({
         title: "🔑 **API Key Required**",
-        description: "Please enter your Gemini API key to chat with your data.",
+        description: "Please configure your Gemini API key in Settings to enable chat functionality.",
         variant: "destructive"
       });
       return;
@@ -177,7 +163,7 @@ export const CSVUpload: React.FC = () => {
       console.error('Chat error:', error);
       const errorMessage: ChatMessage = {
         role: 'assistant',
-        content: `## ⚠️ **Error**\n\nI encountered an issue: **${error.message}**\n\nPlease check your API key and try again.`,
+        content: `## ⚠️ **Error**\n\nI encountered an issue: **${error.message}**\n\nPlease check your API key in Settings and try again.`,
         timestamp: new Date(),
         id: `error-${Date.now()}`
       };
@@ -197,36 +183,7 @@ export const CSVUpload: React.FC = () => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const renderFormattedMessage = (content: string) => {
-    return content.split('\n').map((line, i) => {
-      // Handle headers
-      if (line.startsWith('### ')) {
-        return <h3 key={i} className="text-lg font-semibold text-gray-900 dark:text-gray-100 mt-3 mb-2">{line.replace('### ', '')}</h3>;
-      }
-      if (line.startsWith('## ')) {
-        return <h2 key={i} className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-4 mb-3">{line.replace('## ', '')}</h2>;
-      }
-      
-      // Handle bullet points
-      if (line.startsWith('• ')) {
-        return <li key={i} className="ml-4 mb-1 text-gray-700 dark:text-gray-300">{line.replace('• ', '')}</li>;
-      }
-      
-      // Handle quotes
-      if (line.startsWith('> ')) {
-        return <blockquote key={i} className="border-l-4 border-blue-500 pl-4 italic text-gray-600 dark:text-gray-400 my-2">{line.replace('> ', '')}</blockquote>;
-      }
-      
-      // Handle bold text
-      const boldFormatted = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      
-      return line ? (
-        <p key={i} className="mb-1 text-gray-700 dark:text-gray-300" dangerouslySetInnerHTML={{ __html: boldFormatted }} />
-      ) : (
-        <br key={i} />
-      );
-    });
-  };
+  const apiKey = localStorage.getItem('gemini_api_key');
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -249,57 +206,31 @@ export const CSVUpload: React.FC = () => {
         </Button>
       </div>
 
-      {/* API Key Management */}
-      <Card className="p-4 mb-6 border-blue-200 bg-blue-50 dark:bg-blue-900/20">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Key className="w-5 h-5 text-blue-600" />
-            <h3 className="font-medium text-blue-800 dark:text-blue-200">**Gemini API Key**</h3>
-            {apiKey && !editingApiKey && (
-              <Badge variant="outline" className="text-green-600 border-green-600">
-                Configured ({apiKey.substring(0, 8)}...)
-              </Badge>
-            )}
-          </div>
-          {apiKey && !editingApiKey && (
+      {/* API Key Status - Simple notification */}
+      {!apiKey && (
+        <Card className="p-4 mb-6 border-orange-200 bg-orange-50 dark:bg-orange-900/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-orange-600" />
+              <div>
+                <h3 className="font-medium text-orange-800 dark:text-orange-200">**API Key Required**</h3>
+                <p className="text-sm text-orange-700 dark:text-orange-300">
+                  Configure your Gemini API key in Settings to enable chat functionality with your data.
+                </p>
+              </div>
+            </div>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setEditingApiKey(true)}
+              onClick={() => navigate('/?settings=true')}
               className="flex items-center gap-2"
             >
-              <Edit className="w-4 h-4" />
-              Edit Key
+              <Settings className="w-4 h-4" />
+              Open Settings
             </Button>
-          )}
-        </div>
-        
-        {(showApiKeyInput || editingApiKey) && (
-          <div className="mt-3">
-            <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
-              Enter your Gemini API key to enable chat functionality with your uploaded data.
-            </p>
-            <div className="flex gap-2">
-              <Input
-                type="password"
-                placeholder="Enter your Gemini API key..."
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                className="flex-1"
-              />
-              <Button onClick={handleApiKeySubmit}>Save Key</Button>
-              {editingApiKey && (
-                <Button 
-                  variant="outline" 
-                  onClick={() => setEditingApiKey(false)}
-                >
-                  Cancel
-                </Button>
-              )}
-            </div>
           </div>
-        )}
-      </Card>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Upload Section */}
@@ -474,11 +405,11 @@ export const CSVUpload: React.FC = () => {
                   <Input
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
-                    placeholder="Ask about your data..."
+                    placeholder={apiKey ? "Ask about your data..." : "Configure API key in Settings to chat..."}
                     className="flex-1"
-                    disabled={isChatLoading}
+                    disabled={isChatLoading || !apiKey}
                   />
-                  <Button type="submit" disabled={isChatLoading || !chatInput.trim()} size="sm">
+                  <Button type="submit" disabled={isChatLoading || !chatInput.trim() || !apiKey} size="sm">
                     <Send className="w-4 h-4" />
                   </Button>
                 </form>
@@ -489,9 +420,10 @@ export const CSVUpload: React.FC = () => {
               <Button
                 onClick={() => setShowChat(true)}
                 className="w-full bg-blue-600 hover:bg-blue-700"
+                disabled={!apiKey}
               >
                 <MessageCircle className="w-4 h-4 mr-2" />
-                **Start chatting with your data**
+                {apiKey ? "**Start chatting with your data**" : "**Configure API key in Settings to chat**"}
               </Button>
             </Card>
           )}

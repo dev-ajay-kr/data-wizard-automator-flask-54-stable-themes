@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { MessageCircle, Upload, Database, Settings, Zap, BarChart3, Users, Shield, ArrowRight } from 'lucide-react';
 import { useFiles } from '@/contexts/FileContext';
 import { SettingsPanel } from '@/components/SettingsPanel';
-import { ApiKeyManager } from '@/components/ApiKeyManager';
 
 const Home = () => {
   const { files } = useFiles();
@@ -75,11 +74,6 @@ const Home = () => {
             <div className="flex items-center gap-3">
               <SettingsPanel />
             </div>
-          </div>
-
-          {/* API Key Status */}
-          <div className="max-w-4xl mx-auto mb-12">
-            <ApiKeyManager />
           </div>
 
           {/* Quick Stats */}
