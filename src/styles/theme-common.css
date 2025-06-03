@@ -1,0 +1,41 @@
+
+/* Theme-responsive classes */
+.theme-responsive-bg {
+  background-color: var(--theme-background);
+  min-height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* New theme classes for horizontal navigation */
+.theme-button-nav {
+  color: var(--theme-text);
+}
+
+.theme-button-nav:hover {
+  background-color: var(--theme-accent);
+  color: var(--theme-text);
+}
+
+.theme-button-active {
+  background-color: var(--theme-primary) !important;
+  color: white !important;
+}
+
+.theme-gradient {
+  background: linear-gradient(135deg, var(--theme-primary), var(--theme-accent)) !important;
+}
+
+/* Fix border issue */
+.theme-border {
+  border-color: var(--theme-accent) !important;
+}
+
+/* Responsive fixes for mobile */
+@media (max-width: 512px) {
+  .theme-button-secondary {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}

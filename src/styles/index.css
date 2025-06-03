@@ -1,0 +1,15 @@
+
+/* Import base styles */
+@import './base.css';
+
+/* Import animations */
+@import './animations.css';
+
+/* Import theme common utilities */
+@import './theme-common.css';
+
+/* Import all theme styles */
+@import './themes/classic.css';
+@import './themes/nature.css';
+@import './themes/neon.css';
+@import './themes/brown.css';

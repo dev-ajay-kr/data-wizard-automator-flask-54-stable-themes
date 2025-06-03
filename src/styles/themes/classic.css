@@ -1,0 +1,15 @@
+
+/* Theme: Classic Minimalistic */
+.theme-classic {
+  --theme-primary: #B1B2FF;
+  --theme-secondary: #AAC4FF;
+  --theme-accent: #D2DAFF;
+  --theme-background: #EEF1FF;
+  --theme-text: #222222;
+  --theme-font: 'Inter, Helvetica, sans-serif';
+
+  /* RGB values for animations */
+  --theme-primary-rgb: 177, 178, 255;
+  --theme-secondary-rgb: 170, 196, 255;
+  --theme-accent-rgb: 210, 218, 255;
+}

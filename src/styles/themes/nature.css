@@ -1,0 +1,60 @@
+
+/* Theme: Nature (3D Nature Minimalism) */
+.theme-nature {
+  --theme-primary: #537D5D;
+  --theme-secondary: #73946B;
+  --theme-accent: #9EBC8A;
+  --theme-background: #D2D0A0;
+  --theme-text: #2D4A32;
+  --theme-font: 'Georgia, Source Serif Pro, serif';
+
+  /* RGB values for animations */
+  --theme-primary-rgb: 83, 125, 93;
+  --theme-secondary-rgb: 115, 148, 107;
+  --theme-accent-rgb: 158, 188, 138;
+}
+
+/* 3D enhancements for Nature theme */
+.theme-nature .theme-button-secondary {
+  transform: translateY(0);
+  transition: all 0.2s ease;
+}
+
+.theme-nature .theme-button-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* 3D Theme specific styles */
+.theme-nature .theme-3d-card {
+  position: relative;
+  transform: perspective(1000px) rotateX(5deg);
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  border-width: 2px;
+}
+
+.theme-nature .theme-3d-card:hover {
+  transform: perspective(1000px) rotateX(0deg);
+}
+
+.theme-nature .theme-3d-chart {
+  transform: perspective(1000px) rotateX(5deg);
+  transform-style: preserve-3d;
+}
+
+.theme-nature .theme-3d-bar {
+  filter: drop-shadow(0 8px 8px rgba(83, 125, 93, 0.4));
+}
+
+.theme-nature .theme-3d-line {
+  filter: drop-shadow(0 4px 6px rgba(83, 125, 93, 0.5));
+}
+
+.theme-nature .theme-3d-pie {
+  filter: drop-shadow(0 10px 15px rgba(83, 125, 93, 0.4));
+}
+
+.theme-nature .theme-3d-area {
+  filter: drop-shadow(0 8px 12px rgba(83, 125, 93, 0.3));
+}
