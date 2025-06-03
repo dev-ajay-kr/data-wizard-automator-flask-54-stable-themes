@@ -1,120 +1,134 @@
 
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, MessageCircle, Upload, Database, Settings, Moon, Sun } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Home, 
+  MessageSquare, 
+  Upload, 
+  Database, 
+  Zap, 
+  Settings,
+  Moon, 
+  Sun 
+} from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
-import { cn } from '@/lib/utils';
-
-const navigationItems = [
-  { icon: Home, label: 'Home', path: '/' },
-  { icon: MessageCircle, label: 'Gemini', path: '/chat?tab=gemini' },
-  { icon: Upload, label: 'CSV Upload', path: '/chat?tab=csv-upload' },
-  { icon: Database, label: 'Datasource', path: '/chat?tab=datasource-utilities' },
-  { icon: Settings, label: 'Functions', path: '/chat?tab=functions' },
-];
+import { SettingsPanel } from '@/components/SettingsPanel';
 
 export const Navigation: React.FC = () => {
-  const location = useLocation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { darkMode, toggleDarkMode } = useTheme();
 
-  const isActive = (path: string) => {
-    if (path === '/') return location.pathname === '/' && !location.search;
-    if (path === '/chat?tab=gemini') return location.pathname === '/chat' && (location.search.includes('tab=gemini') || !location.search);
-    if (path.includes('?tab=')) {
-      const [pathname, search] = path.split('?');
-      return location.pathname === pathname && location.search.includes(search);
+  const navItems = [
+    {
+      icon: Home,
+      label: 'Home',
+      path: '/',
+      active: location.pathname === '/'
+    },
+    {
+      icon: MessageSquare,
+      label: 'Chat',
+      path: '/chat',
+      active: location.pathname === '/chat'
     }
-    return location.pathname === path;
-  };
+  ];
 
-  const handleNavigation = (path: string) => {
-    navigate(path);
-  };
+  const quickActions = [
+    {
+      icon: Upload,
+      label: 'Upload',
+      action: () => navigate('/chat?tab=csv-upload'),
+      variant: 'outline' as const
+    },
+    {
+      icon: Database,
+      label: 'Datasource',
+      action: () => navigate('/chat?tab=datasource-utilities'),
+      variant: 'outline' as const
+    },
+    {
+      icon: Zap,
+      label: 'Functions',
+      action: () => navigate('/chat?tab=functions'),
+      variant: 'outline' as const
+    }
+  ];
 
   return (
-    <nav className="bg-white dark:bg-gray-800 shadow-lg border-b dark:border-gray-700 sticky top-0 z-50">
+    <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 backdrop-blur-sm bg-white/80 dark:bg-gray-900/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <div className="flex items-center space-x-4">
-            <Link 
-              to="/" 
-              className="text-2xl font-bold text-blue-600 dark:text-blue-400 hover-scale transition-transform duration-200 hover:scale-105"
-            >
-              🔧 <strong>ETL Hub</strong>
-            </Link>
-          </div>
+          {/* Logo/Brand */}
+          <div className="flex items-center gap-8">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <Database className="w-5 h-5 text-white" />
+              </div>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                DataAI
+              </h1>
+              <Badge variant="outline" className="text-xs">
+                Beta
+              </Badge>
+            </div>
 
-          {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-1">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.path);
-              
-              return (
-                <button
+            {/* Main Navigation */}
+            <div className="hidden md:flex items-center gap-1">
+              {navItems.map((item) => (
+                <Button
                   key={item.path}
-                  onClick={() => handleNavigation(item.path)}
-                  className={cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 relative",
-                    "hover:bg-gray-100 dark:hover:bg-gray-700 hover-scale",
-                    active
-                      ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
-                      : "text-gray-600 dark:text-gray-300"
-                  )}
+                  variant={item.active ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => navigate(item.path)}
+                  className="flex items-center gap-2"
                 >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                  {active && (
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-blue-600 dark:bg-blue-400 animate-scale-in" />
-                  )}
-                </button>
-              );
-            })}
+                  <item.icon className="w-4 h-4" />
+                  {item.label}
+                </Button>
+              ))}
+            </div>
           </div>
 
-          {/* Theme Toggle Only */}
-          <div className="flex items-center gap-3">
+          {/* Right Side Actions */}
+          <div className="flex items-center gap-2">
+            {/* Quick Actions */}
+            <div className="hidden lg:flex items-center gap-1">
+              {quickActions.map((action, index) => (
+                <Button
+                  key={index}
+                  variant={action.variant}
+                  size="sm"
+                  onClick={action.action}
+                  className="flex items-center gap-2"
+                >
+                  <action.icon className="w-4 h-4" />
+                  <span className="hidden xl:inline">{action.label}</span>
+                </Button>
+              ))}
+            </div>
+
+            {/* Theme Toggle */}
             <Button
               variant="outline"
               size="sm"
               onClick={toggleDarkMode}
-              className="flex items-center gap-2 hover-scale"
+              className="flex items-center gap-2"
             >
-              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {darkMode ? (
+                <Sun className="w-4 h-4" />
+              ) : (
+                <Moon className="w-4 h-4" />
+              )}
               <span className="hidden sm:inline">
                 {darkMode ? 'Light' : 'Dark'}
               </span>
             </Button>
-          </div>
-        </div>
 
-        {/* Mobile Navigation */}
-        <div className="md:hidden pb-4">
-          <div className="flex overflow-x-auto space-x-2 scrollbar-hide">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.path);
-              
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => handleNavigation(item.path)}
-                  className={cn(
-                    "flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 min-w-max",
-                    "hover:bg-gray-100 dark:hover:bg-gray-700",
-                    active
-                      ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
-                      : "text-gray-600 dark:text-gray-300"
-                  )}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
+            {/* Settings Panel */}
+            <SettingsPanel />
           </div>
         </div>
       </div>
