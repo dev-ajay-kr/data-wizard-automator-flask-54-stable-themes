@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Upload, MessageSquare, Sparkles, Database, BarChart3, Settings, Zap, Bot, TrendingUp, FileText, Brain, Cpu } from 'lucide-react';
-import { Footer } from '@/components/Footer';
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -59,21 +58,21 @@ export const Home: React.FC = () => {
     {
       icon: Upload,
       label: "Upload Data",
-      action: () => navigate('/'),
+      action: () => navigate('/chat'),
       color: "bg-blue-600 hover:bg-blue-700",
       description: "Start by uploading your CSV files"
     },
     {
       icon: MessageSquare,
       label: "Start Chat",
-      action: () => navigate('/'),
+      action: () => navigate('/chat'),
       color: "bg-green-600 hover:bg-green-700",
       description: "Interactive AI-powered data analysis"
     },
     {
       icon: Sparkles,
       label: "Try Beta Functions",
-      action: () => navigate('/functions'),
+      action: () => navigate('/chat'),
       color: "bg-purple-600 hover:bg-purple-700",
       description: "Explore advanced ML and analytics"
     }
@@ -186,7 +185,7 @@ export const Home: React.FC = () => {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in animation-delay-400">
               <Button
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/chat')}
                 size="lg"
                 variant="outline"
                 className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-8 py-4 rounded-full transition-all duration-300 hover-scale border-white hover:border-gray-200 button-ripple"
@@ -195,7 +194,7 @@ export const Home: React.FC = () => {
                 Get Started Now
               </Button>
               <Button
-                onClick={() => navigate('/functions')}
+                onClick={() => navigate('/chat')}
                 size="lg"
                 variant="outline"
                 className="bg-transparent text-white hover:bg-white/10 font-semibold px-8 py-4 rounded-full transition-all duration-300 hover-scale border-white/50 hover:border-white button-ripple"
@@ -207,8 +206,6 @@ export const Home: React.FC = () => {
           </div>
         </Card>
       </div>
-
-      <Footer />
     </div>
   );
 };

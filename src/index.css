@@ -82,6 +82,35 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  /* Theme-specific styles */
+  .theme-classic {
+    --primary: 177 178 255;
+    --secondary: 170 196 255;
+    --accent: 210 218 255;
+    --background: 238 241 255;
+  }
+
+  .theme-nature {
+    --primary: 83 125 93;
+    --secondary: 115 148 107;
+    --accent: 158 188 138;
+    --background: 210 208 160;
+  }
+
+  .theme-neon {
+    --primary: 0 255 255;
+    --secondary: 255 0 255;
+    --accent: 0 255 0;
+    --background: 0 0 0;
+  }
+
+  .theme-brown {
+    --primary: 141 123 104;
+    --secondary: 164 144 124;
+    --accent: 200 182 166;
+    --background: 241 222 201;
+  }
 }
 
 @layer base {
@@ -93,10 +122,33 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+
+  /* Theme-specific body styles */
+  .theme-classic body {
+    background: linear-gradient(135deg, #EEF1FF 0%, #D2DAFF 100%);
+    font-family: 'Inter', 'Helvetica', sans-serif;
+  }
+
+  .theme-nature body {
+    background: linear-gradient(135deg, #D2D0A0 0%, #9EBC8A 100%);
+    font-family: 'Georgia', 'Source Serif Pro', serif;
+  }
+
+  .theme-neon body {
+    background: linear-gradient(135deg, #000000 0%, #0A0A0A 100%);
+    font-family: 'Orbitron', 'Space Mono', monospace;
+  }
+
+  .theme-brown body {
+    background: linear-gradient(135deg, #F1DEC9 0%, #C8B6A6 100%);
+    font-family: 'Lora', 'Nunito', serif;
+  }
 }
 
 /* Enhanced Custom Animations */
 @layer utilities {
+  /* ... keep existing code (all animation keyframes and classes remain the same) */
+
   /* Advanced Fade Animations */
   @keyframes fade-in {
     from {
@@ -514,6 +566,23 @@
       0 0 20px #ff00de,
       0 0 35px #ff00de,
       0 0 40px #ff00de;
+  }
+
+  /* Theme-specific glow effects */
+  .theme-neon .hover-glow:hover {
+    box-shadow: 0 0 20px var(--theme-primary);
+  }
+
+  .theme-classic .hover-glow:hover {
+    box-shadow: 0 0 15px rgba(177, 178, 255, 0.4);
+  }
+
+  .theme-nature .hover-glow:hover {
+    box-shadow: 0 0 15px rgba(83, 125, 93, 0.4);
+  }
+
+  .theme-brown .hover-glow:hover {
+    box-shadow: 0 0 15px rgba(141, 123, 104, 0.4);
   }
 }
 
