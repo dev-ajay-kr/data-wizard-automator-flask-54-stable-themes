@@ -121,7 +121,6 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  // Initialize state with default values to prevent null errors
   const [darkMode, setDarkModeState] = useState<boolean>(false);
   const [currentTheme, setCurrentTheme] = useState<ThemeName>('default');
 
@@ -142,28 +141,32 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     }
   }, []);
 
-  // Apply dark mode to DOM
+  // Apply theme to DOM - themes override dark/light mode
   useEffect(() => {
     try {
       localStorage.setItem('darkMode', JSON.stringify(darkMode));
+      localStorage.setItem('currentTheme', currentTheme);
+      
       const root = document.documentElement;
       
-      if (darkMode) {
-        root.classList.add('dark');
+      // Remove all existing theme classes first
+      Object.keys(themes).forEach(themeName => {
+        root.classList.remove(`theme-${themeName}`);
+      });
+      root.classList.remove('dark');
+      
+      // Apply the selected theme (overrides dark/light mode)
+      if (currentTheme !== 'default') {
+        root.classList.add(`theme-${currentTheme}`);
+        console.log(`Applied theme: ${currentTheme}`);
       } else {
-        root.classList.remove('dark');
+        // Only apply dark mode if using default theme
+        if (darkMode) {
+          root.classList.add('dark');
+        }
       }
-    } catch (error) {
-      console.warn('Error applying dark mode:', error);
-    }
-  }, [darkMode]);
 
-  // Apply theme to DOM
-  useEffect(() => {
-    try {
-      localStorage.setItem('currentTheme', currentTheme);
       const theme = themes[currentTheme];
-      const root = document.documentElement;
       
       // Apply theme colors as CSS variables
       root.style.setProperty('--theme-primary', theme.colors.primary);
@@ -173,21 +176,21 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       root.style.setProperty('--theme-text', theme.typography.textColor);
       root.style.setProperty('--theme-font', theme.typography.fontFamily);
       
-      // Apply theme class and data attribute
-      Object.keys(themes).forEach(themeName => {
-        root.classList.remove(`theme-${themeName}`);
-      });
-      root.classList.add(`theme-${currentTheme}`);
       root.setAttribute('data-theme', currentTheme);
       
-      console.log(`Applied theme: ${currentTheme}`, theme);
     } catch (error) {
       console.warn('Error applying theme:', error);
     }
-  }, [currentTheme]);
+  }, [currentTheme, darkMode]);
 
   const toggleDarkMode = () => {
-    setDarkModeState(prev => !prev);
+    if (currentTheme === 'default') {
+      setDarkModeState(prev => !prev);
+    } else {
+      // Switch to default theme when toggling dark mode from a custom theme
+      setCurrentTheme('default');
+      setDarkModeState(true);
+    }
   };
 
   const setDarkMode = (dark: boolean) => {
