@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,7 +30,12 @@ import { SettingsPanel } from '@/components/SettingsPanel';
 const NavigationContent: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { darkMode, toggleDarkMode } = useTheme();
+  const { darkMode, toggleDarkMode, currentTheme } = useTheme();
+  const { open, setOpen } = useSidebar();
+
+  // Extract the tab query parameter from the URL
+  const searchParams = new URLSearchParams(location.search);
+  const currentTab = searchParams.get('tab');
 
   const navItems = [
     {
@@ -43,7 +48,7 @@ const NavigationContent: React.FC = () => {
       icon: MessageSquare,
       label: 'Chat',
       path: '/chat',
-      active: location.pathname === '/chat'
+      active: location.pathname === '/chat' && !currentTab
     }
   ];
 
@@ -51,22 +56,34 @@ const NavigationContent: React.FC = () => {
     {
       icon: Upload,
       label: 'Upload CSV',
-      action: () => navigate('/chat?tab=csv-upload')
+      path: '/chat?tab=csv-upload',
+      active: currentTab === 'csv-upload'
     },
     {
       icon: Database,
       label: 'Datasource',
-      action: () => navigate('/chat?tab=datasource-utilities')
+      path: '/chat?tab=datasource-utilities',
+      active: currentTab === 'datasource-utilities'
     },
     {
       icon: Zap,
       label: 'Functions',
-      action: () => navigate('/chat?tab=functions')
+      path: '/chat?tab=functions',
+      active: currentTab === 'functions'
     }
   ];
 
+  // Handle navigation and close sidebar on mobile
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    // On mobile devices, close the sidebar after navigation
+    if (window.innerWidth < 768) {
+      setOpen(false);
+    }
+  };
+
   return (
-    <Sidebar className="theme-sidebar">
+    <Sidebar className={`theme-sidebar ${currentTheme !== 'default' ? `theme-${currentTheme}` : ''}`}>
       <SidebarHeader className="p-4 border-b theme-border">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
@@ -88,7 +105,7 @@ const NavigationContent: React.FC = () => {
             {navItems.map((item) => (
               <SidebarMenuItem key={item.path}>
                 <SidebarMenuButton 
-                  onClick={() => navigate(item.path)}
+                  onClick={() => handleNavigation(item.path)}
                   isActive={item.active}
                   className="theme-menu-button"
                 >
@@ -103,10 +120,11 @@ const NavigationContent: React.FC = () => {
             <p className="text-xs font-medium theme-text-secondary group-data-[collapsible=icon]:hidden">Quick Actions</p>
           </div>
           <SidebarMenu>
-            {quickActions.map((action, index) => (
-              <SidebarMenuItem key={index}>
+            {quickActions.map((action) => (
+              <SidebarMenuItem key={action.path}>
                 <SidebarMenuButton 
-                  onClick={action.action}
+                  onClick={() => handleNavigation(action.path)}
+                  isActive={action.active}
                   className="theme-menu-button"
                 >
                   <action.icon className="w-4 h-4" />
@@ -148,9 +166,11 @@ const NavigationContent: React.FC = () => {
 };
 
 export const VerticalNavigation: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { currentTheme } = useTheme();
+  
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full theme-responsive-bg">
+      <div className={`min-h-screen flex w-full theme-responsive-bg ${currentTheme !== 'default' ? `theme-${currentTheme}` : ''}`}>
         <NavigationContent />
         <main className="flex-1 relative">
           <div className="absolute top-4 left-4 z-50">

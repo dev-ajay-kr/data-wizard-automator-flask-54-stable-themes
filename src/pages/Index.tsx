@@ -5,10 +5,12 @@ import { ChatInterface } from '@/components/ChatInterface';
 import { CSVUpload } from '@/components/CSVUpload';
 import { DatasourceUtilities } from '@/components/DatasourceUtilities';
 import { Functions } from '@/components/Functions';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const Index = () => {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('gemini');
+  const { currentTheme } = useTheme();
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -55,9 +57,13 @@ const Index = () => {
     }
   };
 
+  const getThemeClass = () => {
+    return currentTheme !== 'default' ? `theme-${currentTheme}` : 'bg-gray-50 dark:bg-gray-900';
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">        
-      <main className="py-6">
+    <div className={`min-h-screen ${getThemeClass()}`}>        
+      <main className="py-6 px-4 md:px-6 lg:px-8">
         {renderActiveTab()}
       </main>
     </div>

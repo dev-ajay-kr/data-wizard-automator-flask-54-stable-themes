@@ -5,9 +5,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { FileProvider } from '@/contexts/FileContext';
 import { VerticalNavigation } from '@/components/VerticalNavigation';
-import { Home } from '@/pages/Home';
-import { Index } from '@/pages/Index';
-import { NotFound } from '@/pages/NotFound';
+import Home from '@/pages/Home';
+import Index from '@/pages/Index';
+import NotFound from '@/pages/NotFound';
 import { Toaster } from '@/components/ui/sonner';
 import './App.css';
 
