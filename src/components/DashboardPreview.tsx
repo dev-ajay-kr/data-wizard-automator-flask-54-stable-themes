@@ -3,10 +3,12 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
 import { ChartVisualization } from '@/components/ChartVisualization';
-import { BarChart3, TrendingUp, PieChart, Activity, RefreshCw, Sparkles } from 'lucide-react';
+import { BarChart3, TrendingUp, PieChart, Activity, RefreshCw, Sparkles, MessageSquare, Send } from 'lucide-react';
 import { useGemini } from '@/hooks/useGemini';
 import { useFiles } from '@/contexts/FileContext';
+import { toast } from 'sonner';
 
 interface ChartSuggestion {
   type: 'bar' | 'line' | 'pie' | 'area';
@@ -22,6 +24,8 @@ export const DashboardPreview: React.FC = () => {
   const { callGemini, isLoading } = useGemini();
   const [chartSuggestions, setChartSuggestions] = useState<ChartSuggestion[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
+  const [customQuery, setCustomQuery] = useState('');
+  const [creatingCustomChart, setCreatingCustomChart] = useState(false);
 
   const generateDashboard = async () => {
     if (files.length === 0) return;
@@ -78,10 +82,9 @@ export const DashboardPreview: React.FC = () => {
 
       const result = await callGemini(prompt, JSON.stringify(fileContext, null, 2));
       
-      // Parse Gemini response - fix the TypeScript error
+      // Parse Gemini response
       try {
-        // Convert GeminiResponse to string and extract JSON
-        const responseText = typeof result === 'string' ? result : result.text || JSON.stringify(result);
+        const responseText = typeof result === 'object' ? result.text : result;
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
@@ -91,7 +94,6 @@ export const DashboardPreview: React.FC = () => {
         }
       } catch (parseError) {
         console.error('Error parsing Gemini response:', parseError);
-        // Fallback: create basic suggestions from data
         createFallbackSuggestions();
       }
     } catch (error) {
@@ -143,6 +145,77 @@ export const DashboardPreview: React.FC = () => {
     }
 
     setChartSuggestions(suggestions);
+  };
+
+  const createCustomChart = async () => {
+    if (!customQuery.trim() || files.length === 0) {
+      toast.error('Please enter a chart description and ensure you have uploaded data files.');
+      return;
+    }
+
+    setCreatingCustomChart(true);
+    try {
+      const fileContext = files.map(file => {
+        if (file.parsedData && file.parsedData.length > 0) {
+          const sampleData = file.parsedData.slice(0, 50);
+          const columns = Object.keys(file.parsedData[0]);
+          return {
+            fileName: file.name,
+            columns: columns,
+            rowCount: file.parsedData.length,
+            sampleData: sampleData
+          };
+        }
+        return null;
+      }).filter(Boolean);
+
+      const prompt = `
+        Based on the user's request: "${customQuery}"
+        
+        Create a chart visualization using the provided dataset. Analyze the data and create the most appropriate chart type (bar, line, pie, or area) that matches the user's request.
+        
+        Please respond in this exact JSON format:
+        {
+          "chart": {
+            "type": "bar",
+            "title": "Chart Title",
+            "xKey": "column_name",
+            "yKey": "column_name", 
+            "description": "Brief description of what this chart shows",
+            "data": [
+              {"column_name": "value1", "column_name": 123},
+              {"column_name": "value2", "column_name": 456}
+            ]
+          }
+        }
+        
+        Use actual data from the dataset. Make sure the chart type and data selection match the user's request as closely as possible.
+      `;
+
+      const result = await callGemini(prompt, JSON.stringify(fileContext, null, 2));
+      
+      try {
+        const responseText = typeof result === 'object' ? result.text : result;
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (parsed.chart) {
+            // Add the custom chart to the suggestions
+            setChartSuggestions(prev => [parsed.chart, ...prev]);
+            setCustomQuery('');
+            toast.success('Custom chart created successfully!');
+          }
+        }
+      } catch (parseError) {
+        console.error('Error parsing custom chart response:', parseError);
+        toast.error('Failed to parse chart response. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error creating custom chart:', error);
+      toast.error('Failed to create custom chart. Please try again.');
+    } finally {
+      setCreatingCustomChart(false);
+    }
   };
 
   useEffect(() => {
@@ -202,6 +275,45 @@ export const DashboardPreview: React.FC = () => {
               )}
             </Button>
           </div>
+        </div>
+      </Card>
+
+      {/* Custom Chart Creation */}
+      <Card className="p-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg animate-scale-in">
+        <div className="flex items-center gap-2 mb-4">
+          <MessageSquare className="w-5 h-5 text-green-600 dark:text-green-400" />
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Create Custom Chart with Natural Language
+          </h3>
+        </div>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Describe the chart you want to create in plain English. AI will analyze your data and generate the appropriate visualization.
+        </p>
+        <div className="flex gap-3">
+          <Input
+            placeholder="e.g., 'Show me sales by month as a line chart' or 'Create a pie chart of product categories'"
+            value={customQuery}
+            onChange={(e) => setCustomQuery(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && createCustomChart()}
+            className="flex-1"
+          />
+          <Button
+            onClick={createCustomChart}
+            disabled={creatingCustomChart || !customQuery.trim()}
+            className="bg-green-600 hover:bg-green-700 text-white hover-scale"
+          >
+            {creatingCustomChart ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              <>
+                <Send className="w-4 h-4 mr-2" />
+                Create Chart
+              </>
+            )}
+          </Button>
         </div>
       </Card>
 

@@ -8,7 +8,7 @@ import { FileProvider } from "@/contexts/FileContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
-import Home from "./pages/Home";
+import { Home } from "./pages/Home";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
