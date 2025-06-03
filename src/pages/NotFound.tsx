@@ -2,6 +2,8 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
+import { Button } from "@/components/ui/button";
+import { Home } from "lucide-react";
 
 const NotFound = () => {
   const location = useLocation();
@@ -16,24 +18,26 @@ const NotFound = () => {
 
   const getThemeClass = () => {
     if (currentTheme !== 'default') {
-      return `theme-${currentTheme} theme-responsive-bg`;
+      return `theme-${currentTheme}`;
     }
-    return "bg-gray-100 dark:bg-gray-800";
+    return "";
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center ${getThemeClass()}`}>
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4 theme-text-primary">404</h1>
-        <p className="text-xl text-gray-600 dark:text-gray-400 theme-text-secondary mb-4">
-          Oops! Page not found
+    <div className={`min-h-[80vh] flex items-center justify-center w-full ${getThemeClass()}`}>
+      <div className="text-center p-8 rounded-lg max-w-md theme-card">
+        <h1 className="text-6xl font-bold mb-4 theme-text-primary">404</h1>
+        <p className="text-xl mb-8 theme-text-secondary">
+          Oops! The page you're looking for doesn't exist.
         </p>
-        <a 
-          href="/" 
-          className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline theme-text-primary"
+        <Button 
+          variant="default" 
+          onClick={() => window.location.href = '/'}
+          className="theme-button-primary flex items-center gap-2"
         >
+          <Home className="h-4 w-4" />
           Return to Home
-        </a>
+        </Button>
       </div>
     </div>
   );

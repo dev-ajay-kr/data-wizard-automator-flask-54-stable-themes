@@ -57,13 +57,9 @@ const Index = () => {
     }
   };
 
-  const getThemeClass = () => {
-    return currentTheme !== 'default' ? `theme-${currentTheme}` : 'bg-gray-50 dark:bg-gray-900';
-  };
-
   return (
-    <div className={`min-h-screen ${getThemeClass()}`}>        
-      <main className="py-6 px-4 md:px-6 lg:px-8">
+    <div className="min-h-full w-full">        
+      <main className="container mx-auto py-6 px-4 md:px-6 lg:px-8">
         {renderActiveTab()}
       </main>
     </div>

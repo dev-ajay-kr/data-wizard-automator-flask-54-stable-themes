@@ -11,8 +11,7 @@ import {
   Zap, 
   Settings,
   Moon, 
-  Sun,
-  Menu
+  Sun
 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { SettingsPanel } from '@/components/SettingsPanel';
@@ -20,7 +19,11 @@ import { SettingsPanel } from '@/components/SettingsPanel';
 export const Navigation: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { darkMode, toggleDarkMode } = useTheme();
+  const { darkMode, toggleDarkMode, currentTheme } = useTheme();
+
+  // Extract the tab query parameter from the URL
+  const searchParams = new URLSearchParams(location.search);
+  const currentTab = searchParams.get('tab');
 
   const navItems = [
     {
@@ -33,7 +36,7 @@ export const Navigation: React.FC = () => {
       icon: MessageSquare,
       label: 'Chat',
       path: '/chat',
-      active: location.pathname === '/chat'
+      active: location.pathname === '/chat' && !currentTab
     }
   ];
 
@@ -41,56 +44,59 @@ export const Navigation: React.FC = () => {
     {
       icon: Upload,
       label: 'Upload',
-      action: () => navigate('/chat?tab=csv-upload'),
-      variant: 'outline' as const,
+      path: '/chat?tab=csv-upload',
+      active: currentTab === 'csv-upload',
       mobileLabel: 'CSV'
     },
     {
       icon: Database,
       label: 'Datasource',
-      action: () => navigate('/chat?tab=datasource-utilities'),
-      variant: 'outline' as const,
+      path: '/chat?tab=datasource-utilities',
+      active: currentTab === 'datasource-utilities',
       mobileLabel: 'Data'
     },
     {
       icon: Zap,
       label: 'Functions',
-      action: () => navigate('/chat?tab=functions'),
-      variant: 'outline' as const,
+      path: '/chat?tab=functions',
+      active: currentTab === 'functions',
       mobileLabel: 'Func'
     }
   ];
 
+  const themeClass = currentTheme !== 'default' ? `theme-${currentTheme}` : '';
+
   return (
-    <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 backdrop-blur-sm bg-white/80 dark:bg-gray-900/80">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className={`sticky top-0 z-50 backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border-b theme-border ${themeClass}`}>
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo/Brand */}
-          <div className="flex items-center gap-4 lg:gap-8">
+          <div className="flex items-center gap-2 lg:gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center theme-gradient">
                 <Database className="w-5 h-5 text-white" />
               </div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-lg font-bold theme-text-primary hidden sm:block">
                 DataAI
+                <Badge variant="outline" className="ml-2 text-xs theme-badge">
+                  Beta
+                </Badge>
               </h1>
-              <Badge variant="outline" className="text-xs">
-                Beta
-              </Badge>
             </div>
 
-            {/* Main Navigation - Hidden on mobile, shown on medium+ screens */}
-            <div className="hidden md:flex items-center gap-1">
+            {/* Main Navigation */}
+            <div className="flex items-center gap-1">
               {navItems.map((item) => (
                 <Button
                   key={item.path}
                   variant={item.active ? "default" : "ghost"}
                   size="sm"
                   onClick={() => navigate(item.path)}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-1 theme-button-nav"
+                  title={item.label}
                 >
                   <item.icon className="w-4 h-4" />
-                  {item.label}
+                  <span className="hidden sm:inline">{item.label}</span>
                 </Button>
               ))}
             </div>
@@ -103,14 +109,14 @@ export const Navigation: React.FC = () => {
               {quickActions.map((action, index) => (
                 <Button
                   key={index}
-                  variant={action.variant}
+                  variant="outline"
                   size="sm"
-                  onClick={action.action}
-                  className="flex items-center gap-1 sm:gap-2"
+                  onClick={() => navigate(action.path)}
+                  className={`flex items-center gap-1 theme-button-secondary ${action.active ? 'theme-button-active' : ''}`}
                   title={action.label}
                 >
                   <action.icon className="w-4 h-4" />
-                  <span className="hidden sm:inline lg:inline">
+                  <span className="hidden sm:inline">
                     {action.label}
                   </span>
                   <span className="inline sm:hidden">
@@ -120,29 +126,12 @@ export const Navigation: React.FC = () => {
               ))}
             </div>
 
-            {/* Mobile Navigation Menu for main nav items */}
-            <div className="flex md:hidden items-center gap-1">
-              {navItems.map((item) => (
-                <Button
-                  key={`mobile-${item.path}`}
-                  variant={item.active ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => navigate(item.path)}
-                  className="flex items-center gap-1"
-                  title={item.label}
-                >
-                  <item.icon className="w-4 h-4" />
-                  <span className="text-xs">{item.label}</span>
-                </Button>
-              ))}
-            </div>
-
             {/* Theme Toggle */}
             <Button
               variant="outline"
               size="sm"
               onClick={toggleDarkMode}
-              className="flex items-center gap-1 sm:gap-2"
+              className="flex items-center gap-1 theme-button-secondary"
               title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
               {darkMode ? (
@@ -159,7 +148,7 @@ export const Navigation: React.FC = () => {
             <SettingsPanel />
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </header>
   );
 };
