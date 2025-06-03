@@ -43,6 +43,14 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Default theme colors */
+    --theme-primary: #3B82F6;
+    --theme-secondary: #64748B;
+    --theme-accent: #8B5CF6;
+    --theme-background: #FFFFFF;
+    --theme-text: #1F2937;
+    --theme-font: 'Inter, sans-serif';
   }
 
   .dark {
@@ -83,33 +91,68 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-  /* Theme-specific styles */
+  /* Classic Minimalistic Theme */
   .theme-classic {
-    --primary: 177 178 255;
-    --secondary: 170 196 255;
-    --accent: 210 218 255;
-    --background: 238 241 255;
+    --theme-primary: #B1B2FF;
+    --theme-secondary: #AAC4FF;
+    --theme-accent: #D2DAFF;
+    --theme-background: #EEF1FF;
+    --theme-text: #222222;
+    --theme-font: 'Inter, Helvetica, sans-serif';
   }
 
+  .theme-classic body {
+    background: linear-gradient(135deg, #EEF1FF 0%, #D2DAFF 100%);
+    font-family: var(--theme-font);
+    color: var(--theme-text);
+  }
+
+  /* Nature Minimalism Theme */
   .theme-nature {
-    --primary: 83 125 93;
-    --secondary: 115 148 107;
-    --accent: 158 188 138;
-    --background: 210 208 160;
+    --theme-primary: #537D5D;
+    --theme-secondary: #73946B;
+    --theme-accent: #9EBC8A;
+    --theme-background: #D2D0A0;
+    --theme-text: #2D4A32;
+    --theme-font: 'Georgia, Source Serif Pro, serif';
   }
 
+  .theme-nature body {
+    background: linear-gradient(135deg, #D2D0A0 0%, #9EBC8A 100%);
+    font-family: var(--theme-font);
+    color: var(--theme-text);
+  }
+
+  /* Futuristic Neon Theme */
   .theme-neon {
-    --primary: 0 255 255;
-    --secondary: 255 0 255;
-    --accent: 0 255 0;
-    --background: 0 0 0;
+    --theme-primary: #00FFFF;
+    --theme-secondary: #FF00FF;
+    --theme-accent: #00FF00;
+    --theme-background: #000000;
+    --theme-text: #EEEEEE;
+    --theme-font: 'Orbitron, Space Mono, monospace';
   }
 
+  .theme-neon body {
+    background: linear-gradient(135deg, #000000 0%, #0A0A0A 100%);
+    font-family: var(--theme-font);
+    color: var(--theme-text);
+  }
+
+  /* Brown Minimalist Theme */
   .theme-brown {
-    --primary: 141 123 104;
-    --secondary: 164 144 124;
-    --accent: 200 182 166;
-    --background: 241 222 201;
+    --theme-primary: #8D7B68;
+    --theme-secondary: #A4907C;
+    --theme-accent: #C8B6A6;
+    --theme-background: #F1DEC9;
+    --theme-text: #3C2E24;
+    --theme-font: 'Lora, Nunito, serif';
+  }
+
+  .theme-brown body {
+    background: linear-gradient(135deg, #F1DEC9 0%, #C8B6A6 100%);
+    font-family: var(--theme-font);
+    color: var(--theme-text);
   }
 }
 
@@ -121,35 +164,172 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-  }
-
-  /* Theme-specific body styles */
-  .theme-classic body {
-    background: linear-gradient(135deg, #EEF1FF 0%, #D2DAFF 100%);
-    font-family: 'Inter', 'Helvetica', sans-serif;
-  }
-
-  .theme-nature body {
-    background: linear-gradient(135deg, #D2D0A0 0%, #9EBC8A 100%);
-    font-family: 'Georgia', 'Source Serif Pro', serif;
-  }
-
-  .theme-neon body {
-    background: linear-gradient(135deg, #000000 0%, #0A0A0A 100%);
-    font-family: 'Orbitron', 'Space Mono', monospace;
-  }
-
-  .theme-brown body {
-    background: linear-gradient(135deg, #F1DEC9 0%, #C8B6A6 100%);
-    font-family: 'Lora', 'Nunito', serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 
-/* Enhanced Custom Animations */
+/* Theme-responsive utility classes */
 @layer utilities {
-  /* ... keep existing code (all animation keyframes and classes remain the same) */
+  /* Background utilities */
+  .theme-responsive-bg {
+    background: var(--theme-background);
+  }
 
-  /* Advanced Fade Animations */
+  /* Text utilities */
+  .theme-text-primary {
+    color: var(--theme-text);
+  }
+
+  .theme-text-secondary {
+    color: color-mix(in srgb, var(--theme-text) 70%, transparent);
+  }
+
+  .theme-text-muted {
+    color: color-mix(in srgb, var(--theme-text) 50%, transparent);
+  }
+
+  .theme-gradient-text {
+    background: linear-gradient(45deg, var(--theme-primary), var(--theme-secondary));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Button utilities */
+  .theme-button-primary {
+    background-color: var(--theme-primary);
+    color: white;
+    border: 1px solid var(--theme-primary);
+  }
+
+  .theme-button-primary:hover {
+    background-color: color-mix(in srgb, var(--theme-primary) 90%, black);
+  }
+
+  .theme-button-secondary {
+    background-color: white;
+    color: var(--theme-primary);
+    border: 1px solid var(--theme-primary);
+  }
+
+  .theme-button-secondary:hover {
+    background-color: color-mix(in srgb, var(--theme-primary) 10%, white);
+  }
+
+  .theme-button-outline {
+    background-color: transparent;
+    color: var(--theme-text);
+    border: 1px solid color-mix(in srgb, var(--theme-text) 30%, transparent);
+  }
+
+  .theme-button-outline:hover {
+    background-color: color-mix(in srgb, var(--theme-primary) 10%, transparent);
+  }
+
+  /* Card utilities */
+  .theme-card {
+    background-color: color-mix(in srgb, var(--theme-background) 70%, white);
+    border: 1px solid color-mix(in srgb, var(--theme-text) 20%, transparent);
+    backdrop-filter: blur(10px);
+  }
+
+  .theme-badge {
+    background-color: color-mix(in srgb, var(--theme-primary) 10%, white);
+    border: 1px solid color-mix(in srgb, var(--theme-primary) 30%, transparent);
+    color: var(--theme-primary);
+  }
+
+  /* CTA Section utilities */
+  .theme-cta-card {
+    background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+  }
+
+  .theme-cta-title {
+    color: white;
+  }
+
+  .theme-cta-text {
+    color: color-mix(in srgb, white 90%, transparent);
+  }
+
+  /* Theme-specific component styles */
+  .theme-classic .bg-primary {
+    background-color: var(--theme-primary) !important;
+  }
+  
+  .theme-classic .text-primary {
+    color: var(--theme-primary) !important;
+  }
+  
+  .theme-classic .border-primary {
+    border-color: var(--theme-primary) !important;
+  }
+
+  .theme-classic .hover\:bg-purple-200:hover {
+    background-color: #E5E7FF !important;
+  }
+
+  /* Nature Theme Components */
+  .theme-nature .bg-primary {
+    background-color: var(--theme-primary) !important;
+  }
+  
+  .theme-nature .text-primary {
+    color: var(--theme-primary) !important;
+  }
+  
+  .theme-nature .border-primary {
+    border-color: var(--theme-primary) !important;
+  }
+
+  .theme-nature .shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(83, 125, 93, 0.1), 0 2px 4px -1px rgba(83, 125, 93, 0.06) !important;
+  }
+
+  /* Neon Theme Components */
+  .theme-neon .bg-primary {
+    background-color: var(--theme-primary) !important;
+  }
+  
+  .theme-neon .text-primary {
+    color: var(--theme-primary) !important;
+  }
+  
+  .theme-neon .border-primary {
+    border-color: var(--theme-primary) !important;
+  }
+
+  .theme-neon .glow-effect {
+    box-shadow: 0 0 8px var(--theme-primary), 0 0 16px var(--theme-primary), 0 0 24px var(--theme-primary) !important;
+  }
+
+  .theme-neon .bg-glassmorphism {
+    background: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  }
+
+  /* Brown Theme Components */
+  .theme-brown .bg-primary {
+    background-color: var(--theme-primary) !important;
+  }
+  
+  .theme-brown .text-primary {
+    color: var(--theme-primary) !important;
+  }
+  
+  .theme-brown .border-primary {
+    border-color: var(--theme-primary) !important;
+  }
+
+  .theme-brown .shadow-3d {
+    box-shadow: 
+      0 1px 3px rgba(60, 46, 36, 0.12),
+      0 1px 2px rgba(60, 46, 36, 0.24),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Enhanced Custom Animations */
   @keyframes fade-in {
     from {
       opacity: 0;
@@ -172,7 +352,6 @@
     }
   }
 
-  /* Scale Animations with Bounce */
   @keyframes scale-in {
     0% {
       opacity: 0;
@@ -198,7 +377,6 @@
     }
   }
 
-  /* Slide Animations with Easing */
   @keyframes slide-in-right {
     from {
       opacity: 0;
@@ -243,7 +421,6 @@
     }
   }
 
-  /* Rotation and Wobble */
   @keyframes wobble {
     0%, 100% {
       transform: translateX(0%);
@@ -276,7 +453,6 @@
     }
   }
 
-  /* Pulse and Glow Effects */
   @keyframes pulse-glow {
     0%, 100% {
       box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
@@ -295,7 +471,6 @@
     }
   }
 
-  /* Morphing Animations */
   @keyframes morph {
     0%, 100% {
       border-radius: 40% 60% 70% 30% / 40% 40% 60% 50%;
@@ -308,7 +483,6 @@
     }
   }
 
-  /* Typewriter Effect */
   @keyframes typewriter {
     from {
       width: 0;
@@ -327,7 +501,6 @@
     }
   }
 
-  /* Float Animation */
   @keyframes float {
     0%, 100% {
       transform: translateY(0px);
