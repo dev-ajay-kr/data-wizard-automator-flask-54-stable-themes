@@ -5,12 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Database, FileText, Download, Upload, Settings, Search, Filter, RefreshCw, Home, BarChart, Globe } from 'lucide-react';
+import { Database, FileText, Download, Upload, Settings, Search, Filter, RefreshCw, Home, BarChart, Globe, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useFiles } from '@/contexts/FileContext';
 import { ResponseFormatter } from './ResponseFormatter';
 import { AnalysisFunctions } from './AnalysisFunctions';
 import { OnlineDatasource } from './OnlineDatasource';
+import { DashboardPreview } from './DashboardPreview';
 
 export const DatasourceUtilities: React.FC = () => {
   const navigate = useNavigate();
@@ -77,8 +78,12 @@ export const DatasourceUtilities: React.FC = () => {
       </header>
 
       <div className="max-w-7xl mx-auto p-6">
-        <Tabs defaultValue="analysis" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
+        <Tabs defaultValue="dashboard" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Dashboard Preview
+            </TabsTrigger>
             <TabsTrigger value="analysis" className="flex items-center gap-2">
               <BarChart className="w-4 h-4" />
               Analysis & Functions
@@ -88,6 +93,10 @@ export const DatasourceUtilities: React.FC = () => {
               Data Management
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="dashboard">
+            <DashboardPreview />
+          </TabsContent>
 
           <TabsContent value="analysis">
             <AnalysisFunctions />
