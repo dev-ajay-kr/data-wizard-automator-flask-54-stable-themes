@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -79,10 +78,11 @@ export const DashboardPreview: React.FC = () => {
 
       const result = await callGemini(prompt, JSON.stringify(fileContext, null, 2));
       
-      // Parse Gemini response
+      // Parse Gemini response - fix the TypeScript error
       try {
-        // Extract JSON from response (in case there's extra text)
-        const jsonMatch = result.match(/\{[\s\S]*\}/);
+        // Convert GeminiResponse to string and extract JSON
+        const responseText = typeof result === 'string' ? result : result.text || JSON.stringify(result);
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
           if (parsed.suggestions && Array.isArray(parsed.suggestions)) {
@@ -153,8 +153,8 @@ export const DashboardPreview: React.FC = () => {
 
   if (files.length === 0) {
     return (
-      <Card className="p-8 text-center bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg">
-        <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+      <Card className="p-8 text-center bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg animate-fade-in">
+        <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600 animate-pulse" />
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
           No Data Available
         </h3>
@@ -166,28 +166,28 @@ export const DashboardPreview: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <Card className="p-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+    <div className="space-y-6 animate-fade-in">
+      {/* Header with enhanced animations */}
+      <Card className="p-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Sparkles className="w-6 h-6" />
+            <Sparkles className="w-6 h-6 animate-pulse" />
             <div>
-              <h2 className="text-xl font-bold">AI-Generated Dashboard</h2>
-              <p className="text-blue-100">
+              <h2 className="text-xl font-bold animate-slide-in-left">AI-Generated Dashboard</h2>
+              <p className="text-blue-100 animate-slide-in-left animation-delay-200">
                 Smart visualizations based on your data with real insights from Gemini AI
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+          <div className="flex items-center gap-3 animate-slide-in-right">
+            <Badge variant="secondary" className="bg-white/20 text-white border-white/30 hover-scale">
               {files.length} file(s) analyzed
             </Badge>
             <Button
               onClick={generateDashboard}
               disabled={analyzing || isLoading}
               variant="outline"
-              className="text-white border-white hover:bg-white hover:text-blue-600"
+              className="text-white border-white hover:bg-white hover:text-blue-600 transition-all duration-300 hover-scale"
             >
               {analyzing ? (
                 <>
@@ -205,12 +205,12 @@ export const DashboardPreview: React.FC = () => {
         </div>
       </Card>
 
-      {/* Loading State */}
+      {/* Loading State with enhanced animation */}
       {analyzing && (
-        <Card className="p-8 text-center bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg">
+        <Card className="p-8 text-center bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg animate-scale-in">
           <div className="flex flex-col items-center space-y-4">
             <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            <div>
+            <div className="animate-fade-in animation-delay-300">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Analyzing Your Data
               </h3>
@@ -222,9 +222,9 @@ export const DashboardPreview: React.FC = () => {
         </Card>
       )}
 
-      {/* Dashboard Suggestions */}
+      {/* Dashboard Suggestions with staggered animations */}
       {!analyzing && chartSuggestions.length > 0 && (
-        <Card className="p-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg">
+        <Card className="p-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg animate-scale-in">
           <div className="flex items-center gap-2 mb-6">
             <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -235,10 +235,14 @@ export const DashboardPreview: React.FC = () => {
           <ScrollArea className="h-[600px] pr-4">
             <div className="space-y-6">
               {chartSuggestions.map((suggestion, index) => (
-                <Card key={index} className="p-4 border border-gray-200 dark:border-gray-700">
+                <Card 
+                  key={index} 
+                  className="p-4 border border-gray-200 dark:border-gray-700 transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg animate-fade-in hover-scale"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs hover-scale">
                         {suggestion.type.toUpperCase()}
                       </Badge>
                       <h4 className="font-medium text-gray-900 dark:text-white">
@@ -275,15 +279,15 @@ export const DashboardPreview: React.FC = () => {
 
       {/* No Suggestions State */}
       {!analyzing && chartSuggestions.length === 0 && files.length > 0 && (
-        <Card className="p-8 text-center bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg">
-          <PieChart className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+        <Card className="p-8 text-center bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg animate-scale-in">
+          <PieChart className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600 animate-pulse" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Unable to Generate Dashboard
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
             Could not analyze the data for chart suggestions. Please ensure your CSV files have proper column headers and numeric data.
           </p>
-          <Button onClick={generateDashboard} variant="outline">
+          <Button onClick={generateDashboard} variant="outline" className="hover-scale">
             Try Again
           </Button>
         </Card>
