@@ -15,26 +15,33 @@
 }
 
 /* 3D enhancements for Brown theme */
-.theme-brown .theme-button-secondary {
+.theme-brown .theme-button-secondary,
+.theme-brown .theme-button-primary,
+.theme-brown .theme-button-nav {
   transform: translateY(0);
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 6px 12px rgba(141, 123, 104, 0.2);
 }
 
-.theme-brown .theme-button-secondary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+.theme-brown .theme-button-secondary:hover,
+.theme-brown .theme-button-primary:hover,
+.theme-brown .theme-button-nav:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(141, 123, 104, 0.3);
 }
 
 /* 3D Theme specific styles */
-.theme-brown .theme-3d-card {
+.theme-brown .theme-3d-card,
+.theme-brown .theme-card {
   position: relative;
-  transform: perspective(1000px) rotateX(5deg);
-  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.2);
+  transform: perspective(1000px) rotateX(3deg);
+  box-shadow: 0 10px 30px -5px rgba(141, 123, 104, 0.2);
   transition: all 0.3s ease;
   border-width: 2px;
 }
 
-.theme-brown .theme-3d-card:hover {
+.theme-brown .theme-3d-card:hover,
+.theme-brown .theme-card:hover {
   transform: perspective(1000px) rotateX(0deg);
 }
 

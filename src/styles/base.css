@@ -72,6 +72,14 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
+
+    /* Dark theme overrides */
+    --theme-primary: #60A5FA;
+    --theme-secondary: #94A3B8;
+    --theme-accent: #A78BFA;
+    --theme-background: #111827;
+    --theme-text: #F9FAFB;
+    --theme-font: 'Inter, sans-serif';
   }
 }
 
@@ -82,5 +90,8 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: var(--theme-font);
+    background-color: var(--theme-background) !important;
+    color: var(--theme-text) !important;
   }
 }

@@ -14,47 +14,170 @@
   --theme-accent-rgb: 158, 188, 138;
 }
 
-/* 3D enhancements for Nature theme */
-.theme-nature .theme-button-secondary {
-  transform: translateY(0);
-  transition: all 0.2s ease;
+/* Enhanced 3D effects for Nature theme */
+.theme-nature .theme-button-secondary,
+.theme-nature .theme-button-primary,
+.theme-nature .theme-button-nav {
+  transform: translateZ(0) rotateX(0deg) rotateY(0deg);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 
+    0 8px 16px rgba(83, 125, 93, 0.2),
+    0 4px 8px rgba(83, 125, 93, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
 }
 
-.theme-nature .theme-button-secondary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+.theme-nature .theme-button-secondary:hover,
+.theme-nature .theme-button-primary:hover,
+.theme-nature .theme-button-nav:hover {
+  transform: translateY(-8px) rotateX(5deg) scale(1.05);
+  box-shadow: 
+    0 20px 40px rgba(83, 125, 93, 0.3),
+    0 10px 20px rgba(83, 125, 93, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-/* 3D Theme specific styles */
+.theme-nature .theme-button-secondary:active,
+.theme-nature .theme-button-primary:active,
+.theme-nature .theme-button-nav:active {
+  transform: translateY(-2px) rotateX(2deg) scale(1.02);
+  transition: all 0.1s ease;
+}
+
+/* 3D Card effects */
 .theme-nature .theme-3d-card {
   position: relative;
   transform: perspective(1000px) rotateX(5deg);
-  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
+  box-shadow: 
+    0 15px 35px rgba(83, 125, 93, 0.2),
+    0 5px 15px rgba(83, 125, 93, 0.1);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   border-width: 2px;
+  border-radius: 16px;
+  overflow: hidden;
 }
 
 .theme-nature .theme-3d-card:hover {
-  transform: perspective(1000px) rotateX(0deg);
+  transform: perspective(1000px) rotateX(0deg) translateY(-8px);
+  box-shadow: 
+    0 25px 50px rgba(83, 125, 93, 0.25),
+    0 10px 25px rgba(83, 125, 93, 0.15);
 }
 
+.theme-nature .theme-card {
+  transform: perspective(1000px) rotateX(3deg);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 
+    0 12px 24px rgba(83, 125, 93, 0.15),
+    0 6px 12px rgba(83, 125, 93, 0.1);
+  border-radius: 12px;
+}
+
+.theme-nature .theme-card:hover {
+  transform: perspective(1000px) rotateX(0deg) translateY(-4px);
+  box-shadow: 
+    0 20px 40px rgba(83, 125, 93, 0.2),
+    0 10px 20px rgba(83, 125, 93, 0.15);
+}
+
+/* 3D Chart effects */
 .theme-nature .theme-3d-chart {
   transform: perspective(1000px) rotateX(5deg);
   transform-style: preserve-3d;
+  transition: all 0.4s ease;
 }
 
 .theme-nature .theme-3d-bar {
-  filter: drop-shadow(0 8px 8px rgba(83, 125, 93, 0.4));
+  filter: drop-shadow(0 8px 16px rgba(83, 125, 93, 0.4));
+  transition: filter 0.3s ease;
 }
 
 .theme-nature .theme-3d-line {
-  filter: drop-shadow(0 4px 6px rgba(83, 125, 93, 0.5));
+  filter: drop-shadow(0 6px 12px rgba(83, 125, 93, 0.5));
+  transition: filter 0.3s ease;
 }
 
 .theme-nature .theme-3d-pie {
-  filter: drop-shadow(0 10px 15px rgba(83, 125, 93, 0.4));
+  filter: drop-shadow(0 12px 24px rgba(83, 125, 93, 0.4));
+  transition: filter 0.3s ease;
 }
 
 .theme-nature .theme-3d-area {
-  filter: drop-shadow(0 8px 12px rgba(83, 125, 93, 0.3));
+  filter: drop-shadow(0 10px 20px rgba(83, 125, 93, 0.3));
+  transition: filter 0.3s ease;
+}
+
+/* Navigation 3D effects */
+.theme-nature header {
+  backdrop-filter: blur(10px);
+  border-bottom: 2px solid var(--theme-accent);
+  box-shadow: 0 4px 12px rgba(83, 125, 93, 0.1);
+}
+
+/* Enhanced animations */
+.theme-nature .animate-fade-in {
+  animation: nature-fade-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.theme-nature .animate-slide-in-right {
+  animation: nature-slide-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes nature-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) rotateX(10deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotateX(0deg);
+  }
+}
+
+@keyframes nature-slide-in {
+  0% {
+    transform: translateX(100%) rotateY(15deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0) rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+/* Floating effect for special elements */
+.theme-nature .float-3d {
+  animation: nature-float 4s ease-in-out infinite;
+}
+
+@keyframes nature-float {
+  0%, 100% {
+    transform: translateY(0px) rotateX(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotateX(2deg);
+  }
+}
+
+/* Ripple effect on click */
+.theme-nature .theme-button-secondary::before,
+.theme-nature .theme-button-primary::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.theme-nature .theme-button-secondary:active::before,
+.theme-nature .theme-button-primary:active::before {
+  width: 300px;
+  height: 300px;
 }

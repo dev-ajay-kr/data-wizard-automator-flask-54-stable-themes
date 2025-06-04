@@ -1,21 +1,39 @@
 
 /* Theme-responsive classes */
 .theme-responsive-bg {
-  background-color: var(--theme-background);
+  background-color: var(--theme-background) !important;
+  color: var(--theme-text) !important;
   min-height: 100vh;
   width: 100%;
   margin: 0;
   padding: 0;
 }
 
-/* New theme classes for horizontal navigation */
+/* Universal theme text classes */
+.theme-text-primary {
+  color: var(--theme-text) !important;
+}
+
+.theme-text-secondary {
+  color: var(--theme-text) !important;
+  opacity: 0.8;
+}
+
+.theme-text-muted {
+  color: var(--theme-text) !important;
+  opacity: 0.6;
+}
+
+/* Theme button classes */
 .theme-button-nav {
-  color: var(--theme-text);
+  background-color: transparent !important;
+  color: var(--theme-text) !important;
+  border: 1px solid var(--theme-accent) !important;
 }
 
 .theme-button-nav:hover {
-  background-color: var(--theme-accent);
-  color: var(--theme-text);
+  background-color: var(--theme-accent) !important;
+  color: var(--theme-text) !important;
 }
 
 .theme-button-active {
@@ -23,13 +41,74 @@
   color: white !important;
 }
 
+.theme-button-primary {
+  background-color: var(--theme-primary) !important;
+  color: white !important;
+  border: 1px solid var(--theme-primary) !important;
+}
+
+.theme-button-primary:hover {
+  background-color: var(--theme-secondary) !important;
+  transform: translateY(-2px);
+}
+
+.theme-button-secondary {
+  background-color: var(--theme-accent) !important;
+  color: var(--theme-text) !important;
+  border: 1px solid var(--theme-accent) !important;
+}
+
+.theme-button-secondary:hover {
+  background-color: var(--theme-secondary) !important;
+  color: white !important;
+}
+
+/* Theme card styling */
+.theme-card {
+  background-color: var(--theme-background) !important;
+  color: var(--theme-text) !important;
+  border: 1px solid var(--theme-accent) !important;
+}
+
+/* Theme gradient */
 .theme-gradient {
   background: linear-gradient(135deg, var(--theme-primary), var(--theme-accent)) !important;
 }
 
-/* Fix border issue */
+.theme-gradient-text {
+  background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Theme border */
 .theme-border {
   border-color: var(--theme-accent) !important;
+}
+
+/* Theme badge */
+.theme-badge {
+  background-color: var(--theme-accent) !important;
+  color: var(--theme-text) !important;
+  border: 1px solid var(--theme-accent) !important;
+}
+
+/* Fix shadcn components to respect theme */
+[data-theme] .bg-card {
+  background-color: var(--theme-background) !important;
+}
+
+[data-theme] .text-card-foreground {
+  color: var(--theme-text) !important;
+}
+
+[data-theme] .bg-background {
+  background-color: var(--theme-background) !important;
+}
+
+[data-theme] .text-foreground {
+  color: var(--theme-text) !important;
 }
 
 /* Responsive fixes for mobile */
@@ -38,4 +117,22 @@
     padding-left: 0.5rem;
     padding-right: 0.5rem;
   }
+}
+
+/* Hover effects */
+.hover-scale {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }

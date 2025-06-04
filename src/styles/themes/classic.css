@@ -13,3 +13,21 @@
   --theme-secondary-rgb: 170, 196, 255;
   --theme-accent-rgb: 210, 218, 255;
 }
+
+/* Ensure proper contrast and readability */
+.theme-classic .theme-button-secondary,
+.theme-classic .theme-button-primary,
+.theme-classic .theme-button-nav {
+  color: var(--theme-text) !important;
+  transition: all 0.3s ease;
+}
+
+.theme-classic .theme-button-secondary:hover,
+.theme-classic .theme-button-primary:hover {
+  color: white !important;
+}
+
+.theme-classic .theme-card {
+  background-color: rgba(238, 241, 255, 0.8) !important;
+  backdrop-filter: blur(10px);
+}

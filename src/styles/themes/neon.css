@@ -12,41 +12,58 @@
   --theme-primary-rgb: 0, 255, 255;
   --theme-secondary-rgb: 255, 0, 255;
   --theme-accent-rgb: 0, 255, 0;
-
-  /* Neon-specific styles */
-  color: var(--theme-text);
 }
 
-/* Enhancements for Neon theme */
+/* Neon theme background */
 .theme-neon .theme-responsive-bg {
-  background: radial-gradient(circle at 50% 50%, #101010, #000000);
+  background: radial-gradient(circle at 50% 50%, #101010, #000000) !important;
 }
 
 .theme-neon header {
-  background: rgba(0, 0, 0, 0.8) !important;
-  border-bottom: 1px solid var(--theme-primary) !important;
-  box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.9) !important;
+  border-bottom: 2px solid var(--theme-primary) !important;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
 }
 
-/* Neon Theme specific styles */
-.theme-neon .theme-button-primary {
-  background-color: rgba(0, 255, 255, 0.2) !important;
+/* Neon button effects */
+.theme-neon .theme-button-primary,
+.theme-neon .theme-button-secondary,
+.theme-neon .theme-button-nav {
+  background-color: rgba(0, 255, 255, 0.1) !important;
   color: var(--theme-primary) !important;
-  box-shadow: 0 0 10px 2px var(--theme-primary), 0 0 20px rgba(0, 255, 255, 0.2) inset;
-  border: 1px solid var(--theme-primary) !important;
-  text-shadow: 0 0 5px var(--theme-primary);
-  backdrop-filter: blur(4px);
+  border: 2px solid var(--theme-primary) !important;
+  box-shadow: 
+    0 0 10px var(--theme-primary),
+    0 0 20px rgba(0, 255, 255, 0.2),
+    inset 0 0 10px rgba(0, 255, 255, 0.1);
+  text-shadow: 0 0 8px var(--theme-primary);
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
 }
 
+.theme-neon .theme-button-primary:hover,
+.theme-neon .theme-button-secondary:hover,
+.theme-neon .theme-button-nav:hover {
+  box-shadow: 
+    0 0 20px var(--theme-primary),
+    0 0 30px rgba(0, 255, 255, 0.4),
+    inset 0 0 20px rgba(0, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+/* Neon card effects */
 .theme-neon .theme-card {
-  background: rgba(10, 10, 10, 0.7) !important;
-  border: 1px solid var(--theme-primary) !important;
-  box-shadow: 0 0 15px 1px rgba(0, 255, 255, 0.3);
-  backdrop-filter: blur(5px);
+  background: rgba(10, 10, 10, 0.8) !important;
+  border: 2px solid var(--theme-primary) !important;
+  box-shadow: 
+    0 0 20px rgba(0, 255, 255, 0.3),
+    inset 0 0 20px rgba(0, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
 }
 
 .theme-neon .theme-text-primary {
-  text-shadow: 0 0 8px var(--theme-primary);
+  color: var(--theme-text) !important;
+  text-shadow: 0 0 10px var(--theme-primary);
 }
 
 .theme-neon .theme-badge {
@@ -54,4 +71,5 @@
   border: 1px solid var(--theme-primary) !important;
   box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
   color: var(--theme-primary) !important;
+  text-shadow: 0 0 5px var(--theme-primary);
 }

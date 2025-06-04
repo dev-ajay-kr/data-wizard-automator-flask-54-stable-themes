@@ -141,42 +141,74 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     }
   }, []);
 
-  // Apply theme to DOM - themes override dark/light mode
+  // Enhanced theme application
   useEffect(() => {
     try {
       localStorage.setItem('darkMode', JSON.stringify(darkMode));
       localStorage.setItem('currentTheme', currentTheme);
       
       const root = document.documentElement;
+      const body = document.body;
       
       // Remove all existing theme classes first
       Object.keys(themes).forEach(themeName => {
         root.classList.remove(`theme-${themeName}`);
+        body.classList.remove(`theme-${themeName}`);
       });
       root.classList.remove('dark');
+      body.classList.remove('dark');
       
       // Apply the selected theme (overrides dark/light mode)
       if (currentTheme !== 'default') {
         root.classList.add(`theme-${currentTheme}`);
+        body.classList.add(`theme-${currentTheme}`);
         console.log(`Applied theme: ${currentTheme}`);
       } else {
         // Only apply dark mode if using default theme
         if (darkMode) {
           root.classList.add('dark');
+          body.classList.add('dark');
         }
       }
 
       const theme = themes[currentTheme];
       
-      // Apply theme colors as CSS variables
-      root.style.setProperty('--theme-primary', theme.colors.primary);
-      root.style.setProperty('--theme-secondary', theme.colors.secondary);
-      root.style.setProperty('--theme-accent', theme.colors.accent);
-      root.style.setProperty('--theme-background', theme.colors.background);
-      root.style.setProperty('--theme-text', theme.typography.textColor);
-      root.style.setProperty('--theme-font', theme.typography.fontFamily);
+      // Apply theme colors as CSS variables with higher priority
+      const vars = [
+        ['--theme-primary', theme.colors.primary],
+        ['--theme-secondary', theme.colors.secondary],
+        ['--theme-accent', theme.colors.accent],
+        ['--theme-background', theme.colors.background],
+        ['--theme-text', theme.typography.textColor],
+        ['--theme-font', theme.typography.fontFamily]
+      ];
+
+      vars.forEach(([property, value]) => {
+        root.style.setProperty(property, value);
+        body.style.setProperty(property, value);
+      });
+      
+      // Set theme-specific RGB values for animations
+      const rgbMap: Record<ThemeName, { primary: string, secondary: string, accent: string }> = {
+        default: { primary: '59, 130, 246', secondary: '100, 116, 139', accent: '139, 92, 246' },
+        classic: { primary: '177, 178, 255', secondary: '170, 196, 255', accent: '210, 218, 255' },
+        nature: { primary: '83, 125, 93', secondary: '115, 148, 107', accent: '158, 188, 138' },
+        neon: { primary: '0, 255, 255', secondary: '255, 0, 255', accent: '0, 255, 0' },
+        brown: { primary: '141, 123, 104', secondary: '164, 144, 124', accent: '200, 182, 166' }
+      };
+
+      const rgb = rgbMap[currentTheme];
+      root.style.setProperty('--theme-primary-rgb', rgb.primary);
+      root.style.setProperty('--theme-secondary-rgb', rgb.secondary);
+      root.style.setProperty('--theme-accent-rgb', rgb.accent);
       
       root.setAttribute('data-theme', currentTheme);
+      body.setAttribute('data-theme', currentTheme);
+      
+      // Force update body styles
+      body.style.backgroundColor = theme.colors.background;
+      body.style.color = theme.typography.textColor;
+      body.style.fontFamily = theme.typography.fontFamily;
       
     } catch (error) {
       console.warn('Error applying theme:', error);
