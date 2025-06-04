@@ -16,15 +16,8 @@ const NotFound = () => {
     );
   }, [location.pathname]);
 
-  const getThemeClass = () => {
-    if (currentTheme !== 'default') {
-      return `theme-${currentTheme}`;
-    }
-    return "";
-  };
-
   return (
-    <div className={`min-h-[80vh] flex items-center justify-center w-full ${getThemeClass()}`}>
+    <div className={`min-h-[80vh] flex items-center justify-center w-full theme-${currentTheme}`}>
       <div className="text-center p-8 rounded-lg max-w-md theme-card">
         <h1 className="text-6xl font-bold mb-4 theme-text-primary">404</h1>
         <p className="text-xl mb-8 theme-text-secondary">
