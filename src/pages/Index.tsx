@@ -26,31 +26,31 @@ const Index = () => {
     switch (activeTab) {
       case 'gemini':
         return (
-          <div className="animate-fade-in">
+          <div className={`animate-fade-in theme-${currentTheme}`}>
             <ChatInterface />
           </div>
         );
       case 'csv-upload':
         return (
-          <div className="animate-slide-in-right">
+          <div className={`animate-slide-in-right theme-${currentTheme}`}>
             <CSVUpload />
           </div>
         );
       case 'datasource-utilities':
         return (
-          <div className="animate-slide-in-right">
+          <div className={`animate-slide-in-right theme-${currentTheme}`}>
             <DatasourceUtilities />
           </div>
         );
       case 'functions':
         return (
-          <div className="animate-slide-in-right">
+          <div className={`animate-slide-in-right theme-${currentTheme}`}>
             <Functions />
           </div>
         );
       default:
         return (
-          <div className="animate-fade-in">
+          <div className={`animate-fade-in theme-${currentTheme}`}>
             <ChatInterface />
           </div>
         );
@@ -58,8 +58,8 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-full w-full">        
-      <main className="container mx-auto py-6 px-4 md:px-6 lg:px-8">
+    <div className={`min-h-full w-full theme-responsive-bg theme-${currentTheme}`}>        
+      <main className={`container mx-auto py-6 px-4 md:px-6 lg:px-8 theme-${currentTheme}`}>
         {renderActiveTab()}
       </main>
     </div>

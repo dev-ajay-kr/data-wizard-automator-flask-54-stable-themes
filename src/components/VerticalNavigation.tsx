@@ -88,7 +88,7 @@ const NavigationContent: React.FC = () => {
             <Database className="w-5 h-5 text-white" />
           </div>
           <div className="group-data-[collapsible=icon]:hidden">
-            <h1 className="text-lg font-bold theme-text-primary">DataAI</h1>
+            <h1 className="text-lg font-bold theme-text-primary">ETLHub</h1>
             <Badge variant="outline" className="text-xs theme-badge">Beta</Badge>
           </div>
         </div>

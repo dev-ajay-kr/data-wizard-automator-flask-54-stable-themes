@@ -75,7 +75,7 @@ export const Navigation: React.FC = () => {
                 <Database className="w-5 h-5 text-white" />
               </div>
               <h1 className="text-lg font-bold theme-text-primary hidden sm:block">
-                DataAI
+                ETLHub
                 <Badge variant="outline" className="ml-2 text-xs theme-badge">
                   Beta
                 </Badge>

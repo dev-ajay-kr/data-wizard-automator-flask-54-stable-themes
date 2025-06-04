@@ -148,6 +148,27 @@
   transform: scale(1.05);
 }
 
+/* Sidebar theme styling */
+.theme-sidebar {
+  background-color: var(--theme-background) !important;
+  border-color: var(--theme-accent) !important;
+}
+
+.theme-menu-button {
+  color: var(--theme-text) !important;
+  transition: all 0.3s ease;
+}
+
+.theme-menu-button:hover {
+  background-color: var(--theme-accent) !important;
+  color: var(--theme-text) !important;
+}
+
+.theme-menu-button[data-active="true"] {
+  background-color: var(--theme-primary) !important;
+  color: white !important;
+}
+
 /* Fix shadcn components to respect theme with animations */
 [data-theme] .bg-card {
   background-color: var(--theme-background) !important;
@@ -248,4 +269,32 @@ header:hover {
   100% {
     background-position: 200% 0;
   }
+}
+
+/* Theme application for main content areas */
+.theme-classic,
+.theme-nature,
+.theme-neon,
+.theme-brown {
+  background-color: var(--theme-background) !important;
+  color: var(--theme-text) !important;
+  font-family: var(--theme-font) !important;
+}
+
+/* Content wrapper theme styling */
+.theme-classic .container,
+.theme-nature .container,
+.theme-neon .container,
+.theme-brown .container {
+  background-color: transparent !important;
+  color: var(--theme-text) !important;
+}
+
+/* Chat interface theme fixes */
+.theme-classic main,
+.theme-nature main,
+.theme-neon main,
+.theme-brown main {
+  background-color: var(--theme-background) !important;
+  color: var(--theme-text) !important;
 }
