@@ -1,43 +1,70 @@
 
-/* Theme border with animation */
-.theme-border {
+/* Enhanced theme component styling */
+
+/* Input components */
+.theme-input {
+  background-color: var(--theme-background) !important;
+  color: var(--theme-text) !important;
   border-color: var(--theme-accent) !important;
-  transition: border-color 0.3s ease;
+  transition: all 0.3s ease;
 }
 
-.theme-border:hover {
+.theme-input:focus {
+  border-color: var(--theme-primary) !important;
+  box-shadow: 0 0 0 2px rgba(var(--theme-primary-rgb), 0.2);
+}
+
+/* Tab components */
+.theme-tab {
+  background-color: transparent !important;
+  color: var(--theme-text) !important;
+  border-color: var(--theme-accent) !important;
+  transition: all 0.3s ease;
+}
+
+.theme-tab[data-state="active"] {
+  background-color: var(--theme-primary) !important;
+  color: white !important;
   border-color: var(--theme-primary) !important;
 }
 
-/* Enhanced theme badge */
-.theme-badge {
-  background-color: var(--theme-accent) !important;
-  color: var(--theme-text) !important;
-  border: 1px solid var(--theme-accent) !important;
-  transition: all 0.3s ease;
-  border-radius: 6px;
+.theme-tab:hover {
+  background-color: rgba(var(--theme-primary-rgb), 0.1) !important;
+  border-color: var(--theme-primary) !important;
 }
 
-.theme-badge:hover {
-  background-color: var(--theme-primary) !important;
-  color: white !important;
-  transform: scale(1.05);
-}
-
-/* Sidebar theme styling */
-.theme-sidebar {
-  background-color: var(--theme-background) !important;
+/* Border utilities */
+.theme-border {
   border-color: var(--theme-accent) !important;
 }
 
+/* Hover states */
+.theme-hover {
+  background-color: rgba(var(--theme-accent-rgb), 0.1) !important;
+}
+
+/* Badge variations */
+.theme-badge {
+  background-color: rgba(var(--theme-primary-rgb), 0.1) !important;
+  color: var(--theme-primary) !important;
+  border-color: var(--theme-primary) !important;
+  transition: all 0.3s ease;
+}
+
+.theme-badge:hover {
+  background-color: rgba(var(--theme-primary-rgb), 0.2) !important;
+}
+
+/* Menu button styling */
 .theme-menu-button {
+  background-color: transparent !important;
   color: var(--theme-text) !important;
   transition: all 0.3s ease;
 }
 
 .theme-menu-button:hover {
-  background-color: var(--theme-accent) !important;
-  color: var(--theme-text) !important;
+  background-color: rgba(var(--theme-primary-rgb), 0.1) !important;
+  color: var(--theme-primary) !important;
 }
 
 .theme-menu-button[data-active="true"] {
@@ -45,11 +72,25 @@
   color: white !important;
 }
 
-/* Navigation enhancements */
-header {
-  transition: all 0.3s ease;
+/* Sidebar specific styling */
+.theme-sidebar {
+  background-color: var(--theme-background) !important;
+  border-color: var(--theme-accent) !important;
 }
 
-header:hover {
-  box-shadow: 0 4px 20px rgba(var(--theme-primary-rgb), 0.1);
+/* Animation utilities for components */
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--theme-primary-rgb), 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(var(--theme-primary-rgb), 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--theme-primary-rgb), 0);
+  }
 }
