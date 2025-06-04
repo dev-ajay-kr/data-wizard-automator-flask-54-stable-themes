@@ -14,20 +14,163 @@
   --theme-accent-rgb: 210, 218, 255;
 }
 
-/* Ensure proper contrast and readability */
+/* Dark mode overrides for classic theme */
+.theme-classic.dark {
+  --theme-background: #111827 !important;
+  --theme-text: #F9FAFB !important;
+}
+
+/* Enhanced button animations for classic theme */
 .theme-classic .theme-button-secondary,
 .theme-classic .theme-button-primary,
 .theme-classic .theme-button-nav {
-  color: var(--theme-text) !important;
-  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  transform: translateY(0) scale(1);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 
+    0 4px 12px rgba(177, 178, 255, 0.2),
+    0 2px 6px rgba(177, 178, 255, 0.1);
+  border-radius: 8px;
 }
 
 .theme-classic .theme-button-secondary:hover,
-.theme-classic .theme-button-primary:hover {
-  color: white !important;
+.theme-classic .theme-button-primary:hover,
+.theme-classic .theme-button-nav:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 
+    0 12px 24px rgba(177, 178, 255, 0.3),
+    0 6px 12px rgba(177, 178, 255, 0.2);
 }
 
+.theme-classic .theme-button-secondary:active,
+.theme-classic .theme-button-primary:active,
+.theme-classic .theme-button-nav:active {
+  transform: translateY(-1px) scale(0.98);
+  transition: all 0.1s ease;
+}
+
+/* Ripple effect */
+.theme-classic .theme-button-secondary::before,
+.theme-classic .theme-button-primary::before,
+.theme-classic .theme-button-nav::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+  z-index: 0;
+}
+
+.theme-classic .theme-button-secondary:active::before,
+.theme-classic .theme-button-primary:active::before,
+.theme-classic .theme-button-nav:active::before {
+  width: 200px;
+  height: 200px;
+}
+
+/* Card animations */
 .theme-classic .theme-card {
-  background-color: rgba(238, 241, 255, 0.8) !important;
-  backdrop-filter: blur(10px);
+  transform: translateY(0);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 
+    0 6px 20px rgba(177, 178, 255, 0.15),
+    0 3px 10px rgba(177, 178, 255, 0.1);
+  border-radius: 12px;
+}
+
+.theme-classic .theme-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 
+    0 16px 32px rgba(177, 178, 255, 0.2),
+    0 8px 16px rgba(177, 178, 255, 0.15);
+}
+
+/* Parallax scroll effects */
+.theme-classic .parallax-element {
+  animation: classic-float 6s ease-in-out infinite;
+}
+
+@keyframes classic-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+/* Smooth transitions for tabs and switches */
+.theme-classic .tab-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-classic .tab-transition:hover {
+  transform: scale(1.05);
+  background-color: rgba(177, 178, 255, 0.1);
+}
+
+/* Velocity animations for page transitions */
+.theme-classic .page-enter {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.theme-classic .page-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.theme-classic .page-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.theme-classic .page-exit-active {
+  opacity: 0;
+  transform: translateX(-30px);
+  transition: all 0.3s ease-in;
+}
+
+/* Navigation bar enhancements */
+.theme-classic header {
+  backdrop-filter: blur(12px);
+  border-bottom: 2px solid rgba(177, 178, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(177, 178, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* Scroll animations */
+.theme-classic .scroll-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.theme-classic .scroll-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Pulse glow effect for important elements */
+.theme-classic .pulse-glow {
+  animation: classic-pulse-glow 2s infinite ease-in-out;
+}
+
+@keyframes classic-pulse-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(177, 178, 255, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(177, 178, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(177, 178, 255, 0);
+  }
 }

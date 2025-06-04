@@ -14,49 +14,208 @@
   --theme-accent-rgb: 200, 182, 166;
 }
 
-/* 3D enhancements for Brown theme */
+/* Dark mode overrides for brown theme */
+.theme-brown.dark {
+  --theme-background: #111827 !important;
+  --theme-text: #F9FAFB !important;
+}
+
+/* Enhanced 3D effects for Brown theme */
 .theme-brown .theme-button-secondary,
 .theme-brown .theme-button-primary,
 .theme-brown .theme-button-nav {
-  transform: translateY(0);
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 6px 12px rgba(141, 123, 104, 0.2);
+  position: relative;
+  transform: translateZ(0) rotateX(0deg) rotateY(0deg);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 
+    0 8px 16px rgba(141, 123, 104, 0.3),
+    0 4px 8px rgba(141, 123, 104, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  perspective: 1000px;
 }
 
 .theme-brown .theme-button-secondary:hover,
 .theme-brown .theme-button-primary:hover,
 .theme-brown .theme-button-nav:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(141, 123, 104, 0.3);
+  transform: translateY(-8px) rotateX(5deg) scale(1.05);
+  box-shadow: 
+    0 20px 40px rgba(141, 123, 104, 0.4),
+    0 10px 20px rgba(141, 123, 104, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-/* 3D Theme specific styles */
+.theme-brown .theme-button-secondary:active,
+.theme-brown .theme-button-primary:active,
+.theme-brown .theme-button-nav:active {
+  transform: translateY(-2px) rotateX(2deg) scale(1.02);
+  transition: all 0.1s ease;
+}
+
+/* 3D Card effects with enhanced depth */
 .theme-brown .theme-3d-card,
 .theme-brown .theme-card {
   position: relative;
-  transform: perspective(1000px) rotateX(3deg);
-  box-shadow: 0 10px 30px -5px rgba(141, 123, 104, 0.2);
-  transition: all 0.3s ease;
+  transform: perspective(1000px) rotateX(5deg);
+  box-shadow: 
+    0 15px 35px rgba(141, 123, 104, 0.25),
+    0 8px 20px rgba(141, 123, 104, 0.15),
+    0 3px 8px rgba(141, 123, 104, 0.1);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   border-width: 2px;
+  border-radius: 16px;
+  overflow: hidden;
+  backdrop-filter: blur(5px);
 }
 
 .theme-brown .theme-3d-card:hover,
 .theme-brown .theme-card:hover {
-  transform: perspective(1000px) rotateX(0deg);
+  transform: perspective(1000px) rotateX(0deg) translateY(-12px);
+  box-shadow: 
+    0 30px 60px rgba(141, 123, 104, 0.3),
+    0 15px 30px rgba(141, 123, 104, 0.2),
+    0 6px 15px rgba(141, 123, 104, 0.15);
+}
+
+/* Enhanced navigation with 3D depth */
+.theme-brown header {
+  backdrop-filter: blur(15px);
+  border-bottom: 3px solid var(--theme-accent);
+  box-shadow: 
+    0 6px 20px rgba(141, 123, 104, 0.2),
+    0 3px 10px rgba(141, 123, 104, 0.1);
+  position: relative;
+}
+
+.theme-brown header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(241, 222, 201, 0.9), rgba(241, 222, 201, 0.7));
+  z-index: -1;
+}
+
+/* 3D Chart effects */
+.theme-brown .theme-3d-chart {
+  transform: perspective(1000px) rotateX(8deg);
+  transform-style: preserve-3d;
+  transition: all 0.4s ease;
 }
 
 .theme-brown .theme-3d-bar {
-  filter: drop-shadow(0 8px 8px rgba(141, 123, 104, 0.4));
+  filter: drop-shadow(0 12px 24px rgba(141, 123, 104, 0.4));
+  transition: filter 0.3s ease;
 }
 
 .theme-brown .theme-3d-line {
-  filter: drop-shadow(0 4px 6px rgba(141, 123, 104, 0.5));
+  filter: drop-shadow(0 8px 16px rgba(141, 123, 104, 0.5));
+  transition: filter 0.3s ease;
 }
 
 .theme-brown .theme-3d-pie {
-  filter: drop-shadow(0 10px 15px rgba(141, 123, 104, 0.4));
+  filter: drop-shadow(0 16px 32px rgba(141, 123, 104, 0.4));
+  transition: filter 0.3s ease;
 }
 
 .theme-brown .theme-3d-area {
-  filter: drop-shadow(0 8px 12px rgba(141, 123, 104, 0.3));
+  filter: drop-shadow(0 12px 24px rgba(141, 123, 104, 0.3));
+  transition: filter 0.3s ease;
+}
+
+/* Enhanced parallax effects */
+.theme-brown .parallax-layer-1 {
+  animation: brown-parallax-1 8s ease-in-out infinite;
+}
+
+.theme-brown .parallax-layer-2 {
+  animation: brown-parallax-2 6s ease-in-out infinite reverse;
+}
+
+@keyframes brown-parallax-1 {
+  0%, 100% {
+    transform: translateY(0px) rotateX(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotateX(3deg);
+  }
+}
+
+@keyframes brown-parallax-2 {
+  0%, 100% {
+    transform: translateY(0px) rotateY(0deg);
+  }
+  50% {
+    transform: translateY(-15px) rotateY(2deg);
+  }
+}
+
+/* Floating animation with 3D rotation */
+.theme-brown .float-3d {
+  animation: brown-float-3d 5s ease-in-out infinite;
+}
+
+@keyframes brown-float-3d {
+  0%, 100% {
+    transform: translateY(0px) rotateX(0deg) rotateY(0deg);
+  }
+  33% {
+    transform: translateY(-12px) rotateX(5deg) rotateY(2deg);
+  }
+  66% {
+    transform: translateY(-8px) rotateX(-3deg) rotateY(-2deg);
+  }
+}
+
+/* Advanced ripple effect with depth */
+.theme-brown .theme-button-secondary::before,
+.theme-brown .theme-button-primary::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3), rgba(200, 182, 166, 0.2));
+  transform: translate(-50%, -50%);
+  transition: width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), height 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 0;
+}
+
+.theme-brown .theme-button-secondary:active::before,
+.theme-brown .theme-button-primary:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Scroll-triggered 3D animations */
+.theme-brown .scroll-3d {
+  opacity: 0;
+  transform: translateY(40px) rotateX(15deg);
+  transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.theme-brown .scroll-3d.visible {
+  opacity: 1;
+  transform: translateY(0) rotateX(0deg);
+}
+
+/* Enhanced tab animations */
+.theme-brown .tab-3d {
+  transform: perspective(500px) rotateX(0deg);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.theme-brown .tab-3d:hover {
+  transform: perspective(500px) rotateX(-5deg) translateY(-3px);
+  box-shadow: 0 8px 16px rgba(141, 123, 104, 0.3);
+}
+
+.theme-brown .tab-3d.active {
+  transform: perspective(500px) rotateX(0deg) translateY(-6px);
+  box-shadow: 0 12px 24px rgba(141, 123, 104, 0.4);
 }

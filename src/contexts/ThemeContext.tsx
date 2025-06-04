@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-export type ThemeName = 'default' | 'classic' | 'nature' | 'neon' | 'brown';
+export type ThemeName = 'classic' | 'nature' | 'neon' | 'brown';
 
 interface Theme {
   name: ThemeName;
@@ -20,21 +20,6 @@ interface Theme {
 }
 
 export const themes: Record<ThemeName, Theme> = {
-  default: {
-    name: 'default',
-    displayName: 'Default',
-    description: 'Clean modern design',
-    colors: {
-      primary: '#3B82F6',
-      secondary: '#64748B',
-      accent: '#8B5CF6',
-      background: '#FFFFFF'
-    },
-    typography: {
-      fontFamily: 'Inter, sans-serif',
-      textColor: '#1F2937'
-    }
-  },
   classic: {
     name: 'classic',
     displayName: 'Classic Minimalistic',
@@ -122,7 +107,7 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [darkMode, setDarkModeState] = useState<boolean>(false);
-  const [currentTheme, setCurrentTheme] = useState<ThemeName>('default');
+  const [currentTheme, setCurrentTheme] = useState<ThemeName>('classic');
 
   // Load saved preferences on mount
   useEffect(() => {
@@ -158,28 +143,25 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       root.classList.remove('dark');
       body.classList.remove('dark');
       
-      // Apply the selected theme (overrides dark/light mode)
-      if (currentTheme !== 'default') {
-        root.classList.add(`theme-${currentTheme}`);
-        body.classList.add(`theme-${currentTheme}`);
-        console.log(`Applied theme: ${currentTheme}`);
-      } else {
-        // Only apply dark mode if using default theme
-        if (darkMode) {
-          root.classList.add('dark');
-          body.classList.add('dark');
-        }
+      // Apply the selected theme
+      root.classList.add(`theme-${currentTheme}`);
+      body.classList.add(`theme-${currentTheme}`);
+      
+      // Apply dark mode if enabled (works with any theme)
+      if (darkMode) {
+        root.classList.add('dark');
+        body.classList.add('dark');
       }
 
       const theme = themes[currentTheme];
       
-      // Apply theme colors as CSS variables with higher priority
+      // Apply theme colors as CSS variables
       const vars = [
         ['--theme-primary', theme.colors.primary],
         ['--theme-secondary', theme.colors.secondary],
         ['--theme-accent', theme.colors.accent],
-        ['--theme-background', theme.colors.background],
-        ['--theme-text', theme.typography.textColor],
+        ['--theme-background', darkMode ? '#111827' : theme.colors.background],
+        ['--theme-text', darkMode ? '#F9FAFB' : theme.typography.textColor],
         ['--theme-font', theme.typography.fontFamily]
       ];
 
@@ -190,7 +172,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       
       // Set theme-specific RGB values for animations
       const rgbMap: Record<ThemeName, { primary: string, secondary: string, accent: string }> = {
-        default: { primary: '59, 130, 246', secondary: '100, 116, 139', accent: '139, 92, 246' },
         classic: { primary: '177, 178, 255', secondary: '170, 196, 255', accent: '210, 218, 255' },
         nature: { primary: '83, 125, 93', secondary: '115, 148, 107', accent: '158, 188, 138' },
         neon: { primary: '0, 255, 255', secondary: '255, 0, 255', accent: '0, 255, 0' },
@@ -206,8 +187,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       body.setAttribute('data-theme', currentTheme);
       
       // Force update body styles
-      body.style.backgroundColor = theme.colors.background;
-      body.style.color = theme.typography.textColor;
+      body.style.backgroundColor = darkMode ? '#111827' : theme.colors.background;
+      body.style.color = darkMode ? '#F9FAFB' : theme.typography.textColor;
       body.style.fontFamily = theme.typography.fontFamily;
       
     } catch (error) {
@@ -216,13 +197,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   }, [currentTheme, darkMode]);
 
   const toggleDarkMode = () => {
-    if (currentTheme === 'default') {
-      setDarkModeState(prev => !prev);
-    } else {
-      // Switch to default theme when toggling dark mode from a custom theme
-      setCurrentTheme('default');
-      setDarkModeState(true);
-    }
+    setDarkModeState(prev => !prev);
   };
 
   const setDarkMode = (dark: boolean) => {
