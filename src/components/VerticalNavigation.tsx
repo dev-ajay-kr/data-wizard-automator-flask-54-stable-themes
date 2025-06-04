@@ -83,7 +83,7 @@ const NavigationContent: React.FC = () => {
   };
 
   return (
-    <Sidebar className={`theme-sidebar ${currentTheme !== 'default' ? `theme-${currentTheme}` : ''}`}>
+    <Sidebar className={`theme-sidebar theme-${currentTheme}`}>
       <SidebarHeader className="p-4 border-b theme-border">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
@@ -170,7 +170,7 @@ export const VerticalNavigation: React.FC<{ children: React.ReactNode }> = ({ ch
   
   return (
     <SidebarProvider>
-      <div className={`min-h-screen flex w-full theme-responsive-bg ${currentTheme !== 'default' ? `theme-${currentTheme}` : ''}`}>
+      <div className={`min-h-screen flex w-full theme-responsive-bg theme-${currentTheme}`}>
         <NavigationContent />
         <main className="flex-1 relative">
           <div className="absolute top-4 left-4 z-50">

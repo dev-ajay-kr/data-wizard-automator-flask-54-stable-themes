@@ -64,7 +64,7 @@ export const Navigation: React.FC = () => {
     }
   ];
 
-  const themeClass = currentTheme !== 'default' ? `theme-${currentTheme}` : '';
+  const themeClass = `theme-${currentTheme}`;
 
   return (
     <header className={`sticky top-0 z-50 backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border-b theme-border ${themeClass}`}>

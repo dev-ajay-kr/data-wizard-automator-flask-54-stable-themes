@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Settings, Key, Plus, Moon, RotateCcw, User, Palette } from 'lucide-react';
-import { useTheme, themes, ThemeName } from '@/contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/hooks/use-toast';
 import { ApiKeyManager } from '@/components/ApiKeyManager';
 
@@ -47,7 +48,7 @@ export const SettingsPanel: React.FC = () => {
   const handleResetDefaults = () => {
     localStorage.removeItem('gemini_api_key');
     localStorage.removeItem('currentTheme');
-    setTheme('default');
+    setTheme('classic');
     toast({
       title: "🔄 **Settings Reset**",
       description: "All settings have been reset to defaults.",
