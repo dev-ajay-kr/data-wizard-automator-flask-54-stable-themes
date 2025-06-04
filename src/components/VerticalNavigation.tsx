@@ -20,9 +20,7 @@ import {
   Upload, 
   Database, 
   Zap, 
-  Settings,
-  Moon, 
-  Sun
+  Settings
 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { SettingsPanel } from '@/components/SettingsPanel';
@@ -30,7 +28,7 @@ import { SettingsPanel } from '@/components/SettingsPanel';
 const NavigationContent: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { darkMode, toggleDarkMode, currentTheme } = useTheme();
+  const { currentTheme } = useTheme();
   const { open, setOpen } = useSidebar();
 
   // Extract the tab query parameter from the URL
@@ -138,15 +136,6 @@ const NavigationContent: React.FC = () => {
             <p className="text-xs font-medium theme-text-secondary group-data-[collapsible=icon]:hidden">Settings</p>
           </div>
           <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton 
-                onClick={toggleDarkMode}
-                className="theme-menu-button"
-              >
-                {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
             <SidebarMenuItem>
               <div className="flex items-center justify-between w-full px-2 py-1.5">
                 <div className="flex items-center gap-2 flex-1">

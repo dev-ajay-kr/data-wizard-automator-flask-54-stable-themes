@@ -4,10 +4,9 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Settings, Key, Plus, Moon, RotateCcw, User, Palette } from 'lucide-react';
+import { Settings, Key, Plus, RotateCcw, User, Palette } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/hooks/use-toast';
 import { ApiKeyManager } from '@/components/ApiKeyManager';
@@ -17,7 +16,7 @@ export const SettingsPanel: React.FC = () => {
   const [newFunctionName, setNewFunctionName] = useState('');
   const [newFunctionUrl, setNewFunctionUrl] = useState('');
   const [newFunctionDesc, setNewFunctionDesc] = useState('');
-  const { darkMode, toggleDarkMode, currentTheme, setTheme, availableThemes } = useTheme();
+  const { currentTheme, setTheme, availableThemes } = useTheme();
   const { toast } = useToast();
 
   const handleAddFunction = () => {
@@ -103,14 +102,14 @@ export const SettingsPanel: React.FC = () => {
                     key={theme.name}
                     className={`p-4 cursor-pointer border-2 transition-all duration-300 hover-scale ${
                       currentTheme === theme.name 
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                        ? 'border-blue-500 bg-blue-50' 
+                        : 'border-gray-200 hover:border-gray-300'
                     }`}
                     onClick={() => setTheme(theme.name)}
                   >
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-gray-900 dark:text-white">
+                        <h4 className="font-semibold text-gray-900">
                           {theme.displayName}
                         </h4>
                         {currentTheme === theme.name && (
@@ -118,7 +117,7 @@ export const SettingsPanel: React.FC = () => {
                         )}
                       </div>
                       
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-gray-600">
                         {theme.description}
                       </p>
                       
@@ -126,7 +125,7 @@ export const SettingsPanel: React.FC = () => {
                         {Object.entries(theme.colors).map(([key, color]) => (
                           <div
                             key={key}
-                            className="w-6 h-6 rounded-full border border-gray-300 dark:border-gray-600"
+                            className="w-6 h-6 rounded-full border border-gray-300"
                             style={{ backgroundColor: color }}
                             title={`${key}: ${color}`}
                           />
@@ -182,34 +181,6 @@ export const SettingsPanel: React.FC = () => {
             </Card>
           </div>
 
-          {/* Theme & Appearance */}
-          <div className="space-y-3">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Moon className="w-5 h-5" />
-              Appearance Settings
-            </h3>
-            <Card className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label htmlFor="dark-mode">Dark Mode</Label>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Switch between light and dark themes
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Badge variant={darkMode ? "default" : "outline"}>
-                    {darkMode ? "Dark" : "Light"}
-                  </Badge>
-                  <Switch
-                    id="dark-mode"
-                    checked={darkMode}
-                    onCheckedChange={toggleDarkMode}
-                  />
-                </div>
-              </div>
-            </Card>
-          </div>
-
           {/* User Profile Placeholder */}
           <div className="space-y-3">
             <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -217,7 +188,7 @@ export const SettingsPanel: React.FC = () => {
               User Profile
             </h3>
             <Card className="p-4">
-              <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+              <div className="text-center py-6 text-gray-500">
                 <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <p>User profile management coming soon</p>
               </div>
@@ -234,7 +205,7 @@ export const SettingsPanel: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <Label>Reset to Defaults</Label>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-gray-600">
                     Clear all settings and return to default configuration
                   </p>
                 </div>

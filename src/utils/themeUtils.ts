@@ -2,7 +2,7 @@
 import { ThemeName } from '@/types/theme';
 import { themes } from '@/constants/themes';
 
-export const applyThemeVariables = (themeName: ThemeName, darkMode: boolean) => {
+export const applyThemeVariables = (themeName: ThemeName) => {
   const root = document.documentElement;
   const body = document.body;
   
@@ -11,18 +11,10 @@ export const applyThemeVariables = (themeName: ThemeName, darkMode: boolean) => 
     root.classList.remove(`theme-${name}`);
     body.classList.remove(`theme-${name}`);
   });
-  root.classList.remove('dark');
-  body.classList.remove('dark');
   
   // Apply the selected theme
   root.classList.add(`theme-${themeName}`);
   body.classList.add(`theme-${themeName}`);
-  
-  // Apply dark mode if enabled
-  if (darkMode) {
-    root.classList.add('dark');
-    body.classList.add('dark');
-  }
 
   const theme = themes[themeName];
   
@@ -31,8 +23,8 @@ export const applyThemeVariables = (themeName: ThemeName, darkMode: boolean) => 
     ['--theme-primary', theme.colors.primary],
     ['--theme-secondary', theme.colors.secondary],
     ['--theme-accent', theme.colors.accent],
-    ['--theme-background', darkMode ? '#111827' : theme.colors.background],
-    ['--theme-text', darkMode ? '#F9FAFB' : theme.typography.textColor],
+    ['--theme-background', theme.colors.background],
+    ['--theme-text', theme.typography.textColor],
     ['--theme-font', theme.typography.fontFamily]
   ];
 
@@ -58,29 +50,23 @@ export const applyThemeVariables = (themeName: ThemeName, darkMode: boolean) => 
   body.setAttribute('data-theme', themeName);
   
   // Force update body styles
-  body.style.backgroundColor = darkMode ? '#111827' : theme.colors.background;
-  body.style.color = darkMode ? '#F9FAFB' : theme.typography.textColor;
+  body.style.backgroundColor = theme.colors.background;
+  body.style.color = theme.typography.textColor;
   body.style.fontFamily = theme.typography.fontFamily;
 };
 
-export const loadThemePreferences = (): { darkMode: boolean; theme: ThemeName } => {
+export const loadThemePreferences = (): ThemeName => {
   try {
-    const savedDarkMode = localStorage.getItem('darkMode');
     const savedTheme = localStorage.getItem('currentTheme') as ThemeName;
-    
-    return {
-      darkMode: savedDarkMode ? JSON.parse(savedDarkMode) : false,
-      theme: savedTheme && themes[savedTheme] ? savedTheme : 'classic'
-    };
+    return savedTheme && themes[savedTheme] ? savedTheme : 'classic';
   } catch (error) {
     console.warn('Error loading theme preferences:', error);
-    return { darkMode: false, theme: 'classic' };
+    return 'classic';
   }
 };
 
-export const saveThemePreferences = (darkMode: boolean, theme: ThemeName) => {
+export const saveThemePreferences = (theme: ThemeName) => {
   try {
-    localStorage.setItem('darkMode', JSON.stringify(darkMode));
     localStorage.setItem('currentTheme', theme);
   } catch (error) {
     console.warn('Error saving theme preferences:', error);

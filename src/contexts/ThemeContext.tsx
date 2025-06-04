@@ -5,9 +5,6 @@ import { themes } from '@/constants/themes';
 import { applyThemeVariables, loadThemePreferences, saveThemePreferences } from '@/utils/themeUtils';
 
 interface ThemeContextType {
-  darkMode: boolean;
-  toggleDarkMode: () => void;
-  setDarkMode: (dark: boolean) => void;
   currentTheme: ThemeName;
   setTheme: (theme: ThemeName) => void;
   availableThemes: Theme[];
@@ -28,29 +25,19 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [darkMode, setDarkModeState] = useState<boolean>(false);
   const [currentTheme, setCurrentTheme] = useState<ThemeName>('classic');
 
   // Load saved preferences on mount
   useEffect(() => {
-    const { darkMode: savedDarkMode, theme: savedTheme } = loadThemePreferences();
-    setDarkModeState(savedDarkMode);
+    const savedTheme = loadThemePreferences();
     setCurrentTheme(savedTheme);
   }, []);
 
   // Apply theme changes
   useEffect(() => {
-    saveThemePreferences(darkMode, currentTheme);
-    applyThemeVariables(currentTheme, darkMode);
-  }, [currentTheme, darkMode]);
-
-  const toggleDarkMode = () => {
-    setDarkModeState(prev => !prev);
-  };
-
-  const setDarkMode = (dark: boolean) => {
-    setDarkModeState(dark);
-  };
+    saveThemePreferences(currentTheme);
+    applyThemeVariables(currentTheme);
+  }, [currentTheme]);
 
   const setTheme = (theme: ThemeName) => {
     if (themes[theme]) {
@@ -61,9 +48,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   };
 
   const contextValue: ThemeContextType = {
-    darkMode,
-    toggleDarkMode,
-    setDarkMode,
     currentTheme,
     setTheme,
     availableThemes: Object.values(themes)

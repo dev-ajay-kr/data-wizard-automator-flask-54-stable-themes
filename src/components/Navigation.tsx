@@ -9,9 +9,7 @@ import {
   Upload, 
   Database, 
   Zap, 
-  Settings,
-  Moon, 
-  Sun
+  Settings
 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { SettingsPanel } from '@/components/SettingsPanel';
@@ -19,7 +17,7 @@ import { SettingsPanel } from '@/components/SettingsPanel';
 export const Navigation: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { darkMode, toggleDarkMode, currentTheme } = useTheme();
+  const { currentTheme } = useTheme();
 
   // Extract the tab query parameter from the URL
   const searchParams = new URLSearchParams(location.search);
@@ -67,7 +65,7 @@ export const Navigation: React.FC = () => {
   const themeClass = `theme-${currentTheme}`;
 
   return (
-    <header className={`sticky top-0 z-50 backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border-b theme-border ${themeClass}`}>
+    <header className={`sticky top-0 z-50 backdrop-blur-sm bg-white/80 border-b theme-border ${themeClass}`}>
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo/Brand */}
@@ -125,24 +123,6 @@ export const Navigation: React.FC = () => {
                 </Button>
               ))}
             </div>
-
-            {/* Theme Toggle */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleDarkMode}
-              className="flex items-center gap-1 theme-button-secondary"
-              title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            >
-              {darkMode ? (
-                <Sun className="w-4 h-4" />
-              ) : (
-                <Moon className="w-4 h-4" />
-              )}
-              <span className="hidden sm:inline">
-                {darkMode ? 'Light' : 'Dark'}
-              </span>
-            </Button>
 
             {/* Settings Panel */}
             <SettingsPanel />
