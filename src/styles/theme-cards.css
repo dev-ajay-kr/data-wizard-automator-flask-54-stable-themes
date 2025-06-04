@@ -1,0 +1,39 @@
+
+/* Enhanced theme card styling */
+.theme-card {
+  background-color: var(--theme-background) !important;
+  color: var(--theme-text) !important;
+  border: 1px solid var(--theme-accent) !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border-radius: 12px;
+}
+
+.theme-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(var(--theme-accent-rgb), 0.2);
+  border-color: var(--theme-primary);
+}
+
+/* Theme gradient with animation */
+.theme-gradient {
+  background: linear-gradient(135deg, var(--theme-primary), var(--theme-accent)) !important;
+  transition: all 0.3s ease;
+}
+
+.theme-gradient:hover {
+  background: linear-gradient(135deg, var(--theme-secondary), var(--theme-primary)) !important;
+}
+
+/* Dark mode specific enhancements */
+.dark .theme-card {
+  background-color: rgba(17, 24, 39, 0.8) !important;
+  backdrop-filter: blur(10px);
+  border-color: rgba(var(--theme-accent-rgb), 0.3) !important;
+}
+
+.dark .theme-button-nav,
+.dark .theme-button-primary,
+.dark .theme-button-secondary {
+  backdrop-filter: blur(10px);
+  border-color: rgba(var(--theme-accent-rgb), 0.5) !important;
+}

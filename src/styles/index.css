@@ -5,8 +5,14 @@
 /* Import animations */
 @import './animations.css';
 
-/* Import theme common utilities */
-@import './theme-common.css';
+/* Import theme utilities - now modular */
+@import './theme-base.css';
+@import './theme-text.css';
+@import './theme-buttons.css';
+@import './theme-cards.css';
+@import './theme-components.css';
+@import './theme-animations.css';
+@import './theme-overrides.css';
 
 /* Import all theme styles */
 @import './themes/classic.css';

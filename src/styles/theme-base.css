@@ -1,0 +1,39 @@
+
+/* Core theme variables and responsive backgrounds */
+.theme-responsive-bg {
+  background-color: var(--theme-background) !important;
+  color: var(--theme-text) !important;
+  min-height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+/* Theme application for main content areas */
+.theme-classic,
+.theme-nature,
+.theme-neon,
+.theme-brown {
+  background-color: var(--theme-background) !important;
+  color: var(--theme-text) !important;
+  font-family: var(--theme-font) !important;
+}
+
+/* Content wrapper theme styling */
+.theme-classic .container,
+.theme-nature .container,
+.theme-neon .container,
+.theme-brown .container {
+  background-color: transparent !important;
+  color: var(--theme-text) !important;
+}
+
+/* Chat interface theme fixes */
+.theme-classic main,
+.theme-nature main,
+.theme-neon main,
+.theme-brown main {
+  background-color: var(--theme-background) !important;
+  color: var(--theme-text) !important;
+}

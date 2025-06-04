@@ -1,0 +1,68 @@
+
+/* Enhanced theme button classes */
+.theme-button-nav {
+  background-color: transparent !important;
+  color: var(--theme-text) !important;
+  border: 1px solid var(--theme-accent) !important;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.theme-button-nav:hover {
+  background-color: var(--theme-accent) !important;
+  color: var(--theme-text) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(var(--theme-primary-rgb), 0.2);
+}
+
+.theme-button-active {
+  background-color: var(--theme-primary) !important;
+  color: white !important;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(var(--theme-primary-rgb), 0.3);
+}
+
+.theme-button-primary {
+  background-color: var(--theme-primary) !important;
+  color: white !important;
+  border: 1px solid var(--theme-primary) !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-button-primary:hover {
+  background-color: var(--theme-secondary) !important;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(var(--theme-primary-rgb), 0.3);
+}
+
+.theme-button-secondary {
+  background-color: var(--theme-accent) !important;
+  color: var(--theme-text) !important;
+  border: 1px solid var(--theme-accent) !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-button-secondary:hover {
+  background-color: var(--theme-secondary) !important;
+  color: white !important;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(var(--theme-secondary-rgb), 0.3);
+}
+
+/* Responsive fixes for mobile with animations */
+@media (max-width: 512px) {
+  .theme-button-secondary {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    transition: all 0.3s ease;
+  }
+  
+  .theme-button-secondary:hover {
+    transform: translateY(-2px) scale(1.01);
+  }
+}

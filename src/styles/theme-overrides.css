@@ -1,0 +1,21 @@
+
+/* Fix shadcn components to respect theme with animations */
+[data-theme] .bg-card {
+  background-color: var(--theme-background) !important;
+  transition: background-color 0.3s ease;
+}
+
+[data-theme] .text-card-foreground {
+  color: var(--theme-text) !important;
+  transition: color 0.3s ease;
+}
+
+[data-theme] .bg-background {
+  background-color: var(--theme-background) !important;
+  transition: background-color 0.3s ease;
+}
+
+[data-theme] .text-foreground {
+  color: var(--theme-text) !important;
+  transition: color 0.3s ease;
+}
