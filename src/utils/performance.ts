@@ -1,4 +1,6 @@
 
+import React from 'react';
+
 interface PerformanceMetric {
   name: string;
   startTime: number;
@@ -66,7 +68,7 @@ class PerformanceMonitor {
 export const performanceMonitor = new PerformanceMonitor();
 
 // Higher-order component for measuring component render time
-export const withPerformanceTracking = <T extends {}>(
+export const withPerformanceTracking = <T extends Record<string, any>>(
   WrappedComponent: React.ComponentType<T>,
   componentName: string
 ) => {
@@ -77,7 +79,7 @@ export const withPerformanceTracking = <T extends {}>(
       performanceMonitor.endMeasure(`render-${componentName}`);
     });
 
-    return <WrappedComponent {...props} />;
+    return React.createElement(WrappedComponent, props);
   };
 };
 

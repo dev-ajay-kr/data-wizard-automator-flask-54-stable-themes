@@ -101,7 +101,7 @@ export const Navigation: React.FC = () => {
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-1 sm:gap-2">
-            {/* Quick Actions - Always visible but responsive */}
+            {/* Quick Actions */}
             <div className="flex items-center gap-1">
               {quickActions.map((action, index) => (
                 <Button
@@ -123,7 +123,7 @@ export const Navigation: React.FC = () => {
               ))}
             </div>
 
-            {/* Single Settings Panel */}
+            {/* Settings Panel */}
             <SettingsPanel />
           </div>
         </div>

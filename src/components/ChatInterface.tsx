@@ -26,6 +26,29 @@ interface Message {
   error?: boolean;
 }
 
+const QUICK_PROMPTS = [
+  {
+    text: "Analyze the uploaded CSV data and provide insights",
+    category: "analysis",
+    color: "bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30"
+  },
+  {
+    text: "Create a dashboard with visualizations for my data",
+    category: "visualization", 
+    color: "bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/20 dark:hover:bg-purple-900/30"
+  },
+  {
+    text: "What ETL best practices should I follow for data processing?",
+    category: "best-practices",
+    color: "bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30"
+  },
+  {
+    text: "Help me clean and validate this dataset",
+    category: "data-cleaning",
+    color: "bg-orange-50 hover:bg-orange-100 dark:bg-orange-900/20 dark:hover:bg-orange-900/30"
+  }
+];
+
 export const ChatInterface: React.FC = () => {
   const [prompt, setPrompt] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -47,6 +70,21 @@ export const ChatInterface: React.FC = () => {
     }
   }, [messages, isLoading]);
 
+  const buildContextualPrompt = (userPrompt: string): string => {
+    if (files.length === 0) return userPrompt;
+    
+    const fileContext = files.map(f => `File: ${f.name} (${f.type})`).join(', ');
+    return `Context: I have uploaded files: ${fileContext}\n\nUser question: ${userPrompt}`;
+  };
+
+  const createMessage = (role: 'user' | 'assistant', content: string, error?: boolean): Message => ({
+    role,
+    content,
+    timestamp: new Date(),
+    id: `${Date.now()}-${Math.random()}`,
+    error
+  });
+
   const handleSubmit = async (e: React.FormEvent, retryMessage?: string) => {
     e.preventDefault();
     const currentPrompt = retryMessage || prompt;
@@ -54,19 +92,8 @@ export const ChatInterface: React.FC = () => {
 
     performanceMonitor.startMeasure('chat-request');
 
-    // Include file context if files are uploaded
-    let contextualPrompt = currentPrompt;
-    if (files.length > 0) {
-      const fileContext = files.map(f => `File: ${f.name} (${f.type})`).join(', ');
-      contextualPrompt = `Context: I have uploaded files: ${fileContext}\n\nUser question: ${currentPrompt}`;
-    }
-
-    const userMessage: Message = {
-      role: 'user',
-      content: currentPrompt,
-      timestamp: new Date(),
-      id: Date.now().toString()
-    };
+    const contextualPrompt = buildContextualPrompt(currentPrompt);
+    const userMessage = createMessage('user', currentPrompt);
     
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
@@ -94,12 +121,7 @@ export const ChatInterface: React.FC = () => {
       );
 
       if (result.success && result.data) {
-        const assistantMessage: Message = {
-          role: 'assistant',
-          content: result.data,
-          timestamp: new Date(),
-          id: (Date.now() + 1).toString()
-        };
+        const assistantMessage = createMessage('assistant', result.data);
         setMessages(prev => [...prev, assistantMessage]);
         
         toast({
@@ -115,13 +137,7 @@ export const ChatInterface: React.FC = () => {
       const appError = ErrorHandler.handleApiError(error);
       logError(appError, 'ChatInterface');
       
-      const errorMessage: Message = {
-        role: 'assistant',
-        content: appError.message,
-        timestamp: new Date(),
-        id: (Date.now() + 2).toString(),
-        error: true
-      };
+      const errorMessage = createMessage('assistant', appError.message, true);
       setMessages(prev => [...prev, errorMessage]);
       
       toast({
@@ -144,28 +160,15 @@ export const ChatInterface: React.FC = () => {
     handleSubmit(syntheticEvent, messageContent);
   };
 
-  const quickPrompts = [
-    {
-      text: "Analyze the uploaded CSV data and provide insights",
-      category: "analysis",
-      color: "bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30"
-    },
-    {
-      text: "Create a dashboard with visualizations for my data",
-      category: "visualization", 
-      color: "bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/20 dark:hover:bg-purple-900/30"
-    },
-    {
-      text: "What ETL best practices should I follow for data processing?",
-      category: "best-practices",
-      color: "bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30"
-    },
-    {
-      text: "Help me clean and validate this dataset",
-      category: "data-cleaning",
-      color: "bg-orange-50 hover:bg-orange-100 dark:bg-orange-900/20 dark:hover:bg-orange-900/30"
+  const getPreviousUserMessage = (currentMessage: Message): string => {
+    const messageIndex = messages.findIndex(m => m.id === currentMessage.id);
+    for (let i = messageIndex - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') {
+        return messages[i].content;
+      }
     }
-  ];
+    return '';
+  };
 
   return (
     <div className={`min-h-screen theme-responsive-bg theme-${currentTheme}`}>
@@ -209,7 +212,7 @@ export const ChatInterface: React.FC = () => {
                   <MessageCircle className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                   <p className="text-lg mb-6">Start a conversation with Gemini AI</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {quickPrompts.map((promptItem, index) => (
+                    {QUICK_PROMPTS.map((promptItem, index) => (
                       <Badge 
                         key={index}
                         variant="outline" 
@@ -251,7 +254,7 @@ export const ChatInterface: React.FC = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleRetry(messages.find(m => m.role === 'user' && m.timestamp < message.timestamp)?.content || '')}
+                                onClick={() => handleRetry(getPreviousUserMessage(message))}
                                 className="mt-3 text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20"
                               >
                                 <RefreshCw className="w-3 h-3 mr-1" />
