@@ -1,38 +1,33 @@
 
 import { exportToExcel, exportChartAsPNG, exportToText } from '@/utils/exportUtils';
+import { apiService } from '@/services/apiService';
+import { ErrorHandler } from '@/utils/errorHandling';
 
 export const callGeminiAPI = async (prompt: string, fileContext: string) => {
-  const apiKey = localStorage.getItem('gemini_api_key');
-  if (!apiKey) {
-    throw new Error('Gemini API key not found. Please set it in the chat interface first.');
-  }
-
-  console.log('Making API call to Gemini with prompt:', prompt.substring(0, 100) + '...');
-  console.log('File context length:', fileContext.length);
-
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      contents: [{
-        parts: [{
-          text: `${prompt}\n\nData Context:\n${fileContext}\n\nPlease provide a structured response with actionable insights.`
-        }]
-      }]
-    }),
+  console.log('🔄 Functions Utils: Making API call', {
+    promptLength: prompt.length,
+    contextLength: fileContext.length
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('API Error:', response.status, errorText);
-    throw new Error(`API Error: ${response.status} - ${errorText}`);
-  }
+  try {
+    const result = await apiService.callGemini({
+      prompt,
+      context: fileContext,
+      model: 'gemini-1.5-flash',
+      temperature: 0.7,
+      maxTokens: 2048
+    });
 
-  const data = await response.json();
-  console.log('API Response received:', data);
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    if (!result.success) {
+      throw new Error(result.error || 'API call failed');
+    }
+
+    return result.data || '';
+  } catch (error: any) {
+    const appError = ErrorHandler.handleApiError(error);
+    console.error('❌ Functions Utils Error:', appError);
+    throw new Error(appError.message);
+  }
 };
 
 // Re-export the utility functions
@@ -49,39 +44,111 @@ export const getStatusColor = (status: string) => {
 
 // Utility to check if API key is available
 export const isGeminiApiAvailable = (): boolean => {
-  return !!localStorage.getItem('gemini_api_key');
+  const savedKeys = localStorage.getItem('api_keys');
+  const legacyKey = localStorage.getItem('gemini_api_key');
+  
+  if (savedKeys) {
+    const keys = JSON.parse(savedKeys);
+    return keys.some((k: any) => k.provider === 'Gemini' && k.key?.trim());
+  }
+  
+  return !!legacyKey?.trim();
 };
 
-// Enhanced file data processing
+// Enhanced file data processing with better error handling
 export const processFileDataForAnalysis = (files: any[]): string => {
   if (!files || files.length === 0) {
     return 'No data files available for analysis.';
   }
 
-  return files.map(file => {
-    const basicInfo = `File: ${file.name}\nType: ${file.type}\nSize: ${file.size} bytes`;
-    
-    if (file.parsedData && file.parsedData.length > 0) {
-      const sampleData = file.parsedData.slice(0, 10);
-      const columns = Object.keys(file.parsedData[0]);
-      const dataTypes = columns.map(col => {
-        const values = file.parsedData.slice(0, 100).map((row: any) => row[col]).filter((val: any) => val !== null && val !== undefined && val !== '');
-        const numericValues = values.filter((val: any) => !isNaN(Number(val)) && val !== '');
-        const dateValues = values.filter((val: any) => !isNaN(Date.parse(val)));
-        
-        if (numericValues.length > values.length * 0.8) return `${col}: numeric`;
-        if (dateValues.length > values.length * 0.5) return `${col}: date`;
-        return `${col}: text`;
-      });
+  try {
+    return files.map(file => {
+      const basicInfo = `File: ${file.name}\nType: ${file.type}\nSize: ${file.size} bytes`;
       
-      return `${basicInfo}\nRows: ${file.parsedData.length}\nColumns: [${columns.join(', ')}]\nData Types: [${dataTypes.join(', ')}]\nSample Data (first 10 rows):\n${JSON.stringify(sampleData, null, 2)}`;
-    }
-    
-    if (file.preview && file.preview.length > 0) {
-      const previewText = file.preview.slice(0, 10).map(row => row.join(',')).join('\n');
-      return `${basicInfo}\nRows: ${file.preview.length}\nColumns: ${file.preview[0]?.length || 0}\nPreview (first 10 rows):\n${previewText}`;
-    }
-    
-    return basicInfo;
-  }).join('\n\n---\n\n');
+      if (file.parsedData && Array.isArray(file.parsedData) && file.parsedData.length > 0) {
+        const sampleData = file.parsedData.slice(0, 10);
+        const columns = Object.keys(file.parsedData[0] || {});
+        
+        if (columns.length === 0) {
+          return `${basicInfo}\nStatus: File parsed but no columns detected`;
+        }
+        
+        const dataTypes = columns.map(col => {
+          const values = file.parsedData
+            .slice(0, 100)
+            .map((row: any) => row[col])
+            .filter((val: any) => val !== null && val !== undefined && val !== '');
+          
+          if (values.length === 0) return `${col}: empty`;
+          
+          const numericValues = values.filter((val: any) => !isNaN(Number(val)) && val !== '');
+          const dateValues = values.filter((val: any) => !isNaN(Date.parse(val)));
+          
+          if (numericValues.length > values.length * 0.8) return `${col}: numeric`;
+          if (dateValues.length > values.length * 0.5) return `${col}: date`;
+          return `${col}: text`;
+        });
+        
+        return [
+          basicInfo,
+          `Rows: ${file.parsedData.length}`,
+          `Columns: [${columns.join(', ')}]`,
+          `Data Types: [${dataTypes.join(', ')}]`,
+          `Sample Data (first 10 rows):`,
+          JSON.stringify(sampleData, null, 2)
+        ].join('\n');
+      }
+      
+      if (file.preview && Array.isArray(file.preview) && file.preview.length > 0) {
+        const previewText = file.preview
+          .slice(0, 10)
+          .map(row => Array.isArray(row) ? row.join(',') : String(row))
+          .join('\n');
+        
+        return [
+          basicInfo,
+          `Rows: ${file.preview.length}`,
+          `Columns: ${file.preview[0]?.length || 0}`,
+          `Preview (first 10 rows):`,
+          previewText
+        ].join('\n');
+      }
+      
+      return `${basicInfo}\nStatus: File uploaded but not processed yet`;
+    }).join('\n\n---\n\n');
+  } catch (error) {
+    console.error('Error processing file data:', error);
+    return 'Error processing file data for analysis.';
+  }
+};
+
+// New utility for better data validation
+export const validateFileData = (file: any): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+  
+  if (!file) {
+    errors.push('File object is null or undefined');
+    return { isValid: false, errors };
+  }
+  
+  if (!file.name) {
+    errors.push('File name is missing');
+  }
+  
+  if (!file.type) {
+    errors.push('File type is missing');
+  }
+  
+  if (file.size === undefined || file.size < 0) {
+    errors.push('Invalid file size');
+  }
+  
+  if (file.parsedData && !Array.isArray(file.parsedData)) {
+    errors.push('Parsed data should be an array');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
 };

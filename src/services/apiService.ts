@@ -1,25 +1,20 @@
 
-import { useState } from 'react';
-
-interface GeminiResponse {
-  text: string;
+interface ApiResponse<T = any> {
+  data?: T;
   error?: string;
+  success: boolean;
 }
 
-interface GeminiConfig {
+interface GeminiRequest {
+  prompt: string;
+  context?: string;
   model?: string;
   temperature?: number;
   maxTokens?: number;
 }
 
-export const useGemini = () => {
-  const [isLoading, setIsLoading] = useState(false);
-
-  const callGemini = async (
-    prompt: string, 
-    context?: string, 
-    config: GeminiConfig = {}
-  ): Promise<GeminiResponse> => {
+class ApiService {
+  private getGeminiApiKey(): string {
     // Check for API key from multiple sources
     const savedKeys = localStorage.getItem('api_keys');
     let apiKey = localStorage.getItem('gemini_api_key');
@@ -32,30 +27,34 @@ export const useGemini = () => {
       }
     }
     
-    // Fallback to default key if none found
+    // Fallback to default key
     if (!apiKey) {
       apiKey = 'AIzaSyBgmj8RqYeGfarD8WHQkegvXnxGLd7Z5x8';
       localStorage.setItem('gemini_api_key', apiKey);
     }
-
-    setIsLoading(true);
     
+    return apiKey;
+  }
+
+  async callGemini(request: GeminiRequest): Promise<ApiResponse<string>> {
     try {
       const {
+        prompt,
+        context,
         model = 'gemini-1.5-flash',
         temperature = 0.7,
         maxTokens = 2048
-      } = config;
+      } = request;
 
+      const apiKey = this.getGeminiApiKey();
       const fullPrompt = context 
         ? `${prompt}\n\nData Context:\n${context}\n\nPlease provide a structured response with actionable insights.`
         : prompt;
 
-      console.log('🤖 Making Gemini API call:', {
+      console.log('🔄 API Service: Making Gemini request', {
         model,
         promptLength: fullPrompt.length,
-        temperature,
-        maxTokens
+        hasContext: !!context
       });
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
@@ -80,50 +79,60 @@ export const useGemini = () => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('🚨 Gemini API Error:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorData
-        });
-        
-        const errorMessage = errorData?.error?.message || `HTTP ${response.status}: ${response.statusText}`;
+        const errorMessage = errorData?.error?.message || `HTTP ${response.status}`;
         throw new Error(errorMessage);
       }
 
       const data = await response.json();
-      console.log('✅ Gemini API Response received successfully');
-      
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
       
       if (!text) {
-        throw new Error('Empty response from Gemini API');
+        throw new Error('Empty response from API');
       }
-      
-      return { text };
-    } catch (error: any) {
-      console.error('❌ Gemini API call failed:', error);
-      
-      // Provide user-friendly error messages
-      let userMessage = 'Failed to connect to Gemini AI. ';
-      
-      if (error.message.includes('overloaded')) {
-        userMessage += 'The service is currently busy. Please try again in a moment.';
-      } else if (error.message.includes('API_KEY')) {
-        userMessage += 'Please check your API key configuration.';
-      } else if (error.message.includes('QUOTA')) {
-        userMessage += 'API quota exceeded. Please check your usage limits.';
-      } else {
-        userMessage += error.message || 'Unknown error occurred';
-      }
-      
-      return { 
-        text: '', 
-        error: userMessage
-      };
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  return { callGemini, isLoading };
-};
+      return {
+        data: text,
+        success: true
+      };
+    } catch (error: any) {
+      console.error('❌ API Service Error:', error);
+      return {
+        error: error.message || 'API request failed',
+        success: false
+      };
+    }
+  }
+
+  // Utility method for retrying failed requests
+  async retryRequest<T>(
+    requestFn: () => Promise<ApiResponse<T>>,
+    maxRetries: number = 3,
+    delay: number = 1000
+  ): Promise<ApiResponse<T>> {
+    let lastError: string = '';
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await requestFn();
+        if (result.success) {
+          return result;
+        }
+        lastError = result.error || 'Unknown error';
+      } catch (error: any) {
+        lastError = error.message || 'Request failed';
+      }
+      
+      if (attempt < maxRetries) {
+        console.log(`🔄 Retrying request (attempt ${attempt + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, delay * attempt));
+      }
+    }
+    
+    return {
+      error: `Failed after ${maxRetries} attempts: ${lastError}`,
+      success: false
+    };
+  }
+}
+
+export const apiService = new ApiService();
