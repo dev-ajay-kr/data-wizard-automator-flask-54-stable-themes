@@ -8,8 +8,7 @@ import {
   MessageSquare, 
   Upload, 
   Database, 
-  Zap, 
-  Settings
+  Zap
 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { SettingsPanel } from '@/components/SettingsPanel';
@@ -124,7 +123,7 @@ export const Navigation: React.FC = () => {
               ))}
             </div>
 
-            {/* Settings Panel */}
+            {/* Single Settings Panel */}
             <SettingsPanel />
           </div>
         </div>

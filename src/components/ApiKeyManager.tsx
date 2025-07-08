@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -57,7 +56,7 @@ export const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({
         localStorage.setItem('api_keys', JSON.stringify(defaultKeys));
       } else {
         // Set default key if none exists
-        const defaultKey = 'AIzaSyD7xOyEoBciNbIA4Sdnsw-NnNNqJ7ylX1A';
+        const defaultKey = 'AIzaSyBgmj8RqYeGfarD8WHQkegvXnxGLd7Z5x8';
         const defaultKeys = [{
           id: 'gemini-default',
           name: 'Gemini AI',
