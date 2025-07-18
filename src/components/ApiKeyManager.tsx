@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Key, Eye, EyeOff, Edit, Check, X, Plus, Trash2 } from 'lucide-react';
+import { Key, Edit, Check, X, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ApiKey {
@@ -27,7 +27,7 @@ export const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({
 }) => {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [isEditing, setIsEditing] = useState<string | null>(null);
-  const [showKey, setShowKey] = useState<{[key: string]: boolean}>({});
+  
   const [tempKey, setTempKey] = useState('');
   const [newKeyData, setNewKeyData] = useState({ name: '', key: '', provider: 'Gemini' });
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -148,9 +148,6 @@ export const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({
     return `${key.substring(0, 4)}${'*'.repeat(Math.max(0, key.length - 8))}${key.substring(key.length - 4)}`;
   };
 
-  const toggleShowKey = (keyId: string) => {
-    setShowKey(prev => ({ ...prev, [keyId]: !prev[keyId] }));
-  };
 
   if (compact) {
     return (
@@ -209,15 +206,6 @@ export const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({
               </div>
               <div className="flex items-center gap-1">
                 <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => toggleShowKey(apiKey.id)}
-                  className="h-6 w-6 p-0"
-                >
-                  {showKey[apiKey.id] ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                </Button>
-                <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => handleEdit(apiKey.id)}
@@ -262,7 +250,7 @@ export const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({
               </div>
             ) : (
               <code className="text-xs font-mono text-gray-600 dark:text-gray-400">
-                {showKey[apiKey.id] ? apiKey.key : maskKey(apiKey.key)}
+                {maskKey(apiKey.key)}
               </code>
             )}
           </div>

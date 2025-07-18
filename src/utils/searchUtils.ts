@@ -1,4 +1,6 @@
 
+import React from 'react';
+
 export interface SearchFilter {
   column: string;
   operator: 'equals' | 'contains' | 'startsWith' | 'endsWith' | 'greater' | 'less' | 'between' | 'in';
