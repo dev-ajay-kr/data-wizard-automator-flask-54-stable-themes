@@ -88,7 +88,14 @@ export const ChatInterface: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent, retryMessage?: string) => {
     e.preventDefault();
     const currentPrompt = retryMessage || prompt;
-    if (!currentPrompt.trim()) return;
+    if (!currentPrompt.trim()) {
+      toast({
+        title: "⚠️ **Input Required**",
+        description: "Please enter a message before sending.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     performanceMonitor.startMeasure('chat-request');
 

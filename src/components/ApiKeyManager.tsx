@@ -83,15 +83,30 @@ export const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({
   };
 
   const handleEdit = (keyId: string) => {
-    const keyToEdit = apiKeys.find(k => k.id === keyId);
-    if (keyToEdit) {
-      setTempKey(keyToEdit.key);
-      setIsEditing(keyId);
-    }
+    setTempKey(''); // Start with blank field for security
+    setIsEditing(keyId);
   };
 
   const handleSave = (keyId: string) => {
-    if (tempKey.trim()) {
+    if (!tempKey.trim()) {
+      toast({
+        title: "⚠️ **Validation Error**",
+        description: "API key cannot be empty.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (tempKey.trim().length < 10) {
+      toast({
+        title: "⚠️ **Validation Error**",
+        description: "API key appears to be too short. Please verify it's correct.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
       const updatedKeys = apiKeys.map(k => 
         k.id === keyId ? { ...k, key: tempKey.trim() } : k
       );
@@ -101,6 +116,12 @@ export const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({
       toast({
         title: "🔑 **API Key Updated**",
         description: "API key has been saved successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "❌ **Save Error**",
+        description: "Failed to save API key. Please try again.",
+        variant: "destructive"
       });
     }
   };
@@ -113,7 +134,44 @@ export const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({
   };
 
   const handleAddNew = () => {
-    if (newKeyData.name.trim() && newKeyData.key.trim()) {
+    if (!newKeyData.name.trim()) {
+      toast({
+        title: "⚠️ **Validation Error**",
+        description: "API key name is required.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!newKeyData.key.trim()) {
+      toast({
+        title: "⚠️ **Validation Error**",
+        description: "API key is required.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (newKeyData.key.trim().length < 10) {
+      toast({
+        title: "⚠️ **Validation Error**",
+        description: "API key appears to be too short. Please verify it's correct.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check for duplicate names
+    if (apiKeys.some(k => k.name.toLowerCase() === newKeyData.name.trim().toLowerCase())) {
+      toast({
+        title: "⚠️ **Validation Error**",
+        description: "An API key with this name already exists.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
       const newKey: ApiKey = {
         id: `${newKeyData.provider.toLowerCase()}-${Date.now()}`,
         name: newKeyData.name.trim(),
@@ -129,6 +187,12 @@ export const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({
       toast({
         title: "🔑 **API Key Added**",
         description: `${newKey.name} has been added successfully.`,
+      });
+    } catch (error) {
+      toast({
+        title: "❌ **Add Error**",
+        description: "Failed to add API key. Please try again.",
+        variant: "destructive"
       });
     }
   };
@@ -230,11 +294,12 @@ export const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({
               <div className="space-y-2">
                 <div className="relative">
                   <Input
-                    type="text"
+                    type="password"
                     value={tempKey}
                     onChange={(e) => setTempKey(e.target.value)}
-                    placeholder="Enter API key..."
+                    placeholder="Enter new API key..."
                     className="text-sm"
+                    autoFocus
                   />
                 </div>
                 <div className="flex gap-2">
