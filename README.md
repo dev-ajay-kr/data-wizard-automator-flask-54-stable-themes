@@ -1,5 +1,5 @@
-# ETLHub - AI-Powered Data Analysis Platform
-
+# ETLHub - AI-Powered Data Analysis Platform 
+https://etlhub.netlify.app/
 ## Project Overview
 
 ETLHub is a sophisticated web application that combines data processing capabilities with AI-powered analysis. It allows users to upload, analyze, and visualize data using Google Gemini AI integration, providing intelligent insights and recommendations for data processing workflows.
@@ -330,6 +330,6 @@ This project is developed with Lovable and follows standard web development prac
 
 ---
 
-**Project URL**: https://lovable.dev/projects/f6a6a7d9-162a-48a8-be00-8a4619ff589a
+**Project URL**: https://etlhub.netlify.app/
 
-For more information about Lovable projects, visit [Lovable Documentation](https://docs.lovable.dev/).
+<img width="1923" height="5559" alt="image" src="https://github.com/user-attachments/assets/957bc334-62c4-49d3-9cce-1e4e39aa97d1" />
